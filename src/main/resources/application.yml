@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: study-ai-agent
+  profiles:
+    active: dev
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
+  session:
+    # Use local servlet session by default. Change to redis only after Redis is configured and running.
+    store-type: none
+    timeout: 2592000
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/study
+    username: root
+    password: 123456
+
+
+server:
+  address: 0.0.0.0
+  port: 8101
+  servlet:
+    context-path: /api
+    session:
+      cookie:
+        max-age: 2592000
+
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml,classpath*:**/*Mapper.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: isDelete
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+knife4j:
+  enable: true
+  openapi:
+    title: "接口文档"
+    version: 1.0
+    group:
+      default:
+        api-rule: package
+        api-rule-resources:
+          - study.studyai.controller
