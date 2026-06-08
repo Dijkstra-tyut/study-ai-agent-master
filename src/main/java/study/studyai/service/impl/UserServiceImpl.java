@@ -131,6 +131,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return currentUser;
     }
 
+    @Override
+    public boolean userLogout(HttpServletRequest request) {
+        // 判断是否已经登录
+        Object userObj = request.getSession().getAttribute(UserConstant.USER_LOGIN_STATE);
+        if (userObj == null) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "未登录");
+        }
+        // 移除登录态
+        request.getSession().removeAttribute(UserConstant.USER_LOGIN_STATE);
+        return true;
+    }
+
     /**
      * 密码加密
      */

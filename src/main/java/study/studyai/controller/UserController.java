@@ -52,5 +52,16 @@ public class UserController {
         return ResultUtils.success(userService.getLoginUserVO(user));
     }
 
+    @PostMapping("/logout")
+    public BaseResponse<Boolean> userLogout(HttpServletRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException("请求参数不能为空");
+        }
+        boolean result = userService.userLogout(request);
+        return ResultUtils.success(result);
+    }
+
+
+
 
 }
