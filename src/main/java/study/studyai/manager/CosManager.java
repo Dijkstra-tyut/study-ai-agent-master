@@ -1,20 +1,19 @@
 package study.studyai.manager;
 
-import cn.hutool.core.io.FileUtil;
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.model.COSObject;
 import com.qcloud.cos.model.GetObjectRequest;
 import com.qcloud.cos.model.PutObjectRequest;
 import com.qcloud.cos.model.PutObjectResult;
-import com.qcloud.cos.model.ciModel.persistence.PicOperations;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import study.studyai.common.ErrorCode;
 import study.studyai.config.CosClientConfig;
+import study.studyai.exception.BusinessException;
 
 import javax.annotation.Resource;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 @Component
 public class CosManager {
@@ -22,7 +21,7 @@ public class CosManager {
     @Resource
     private CosClientConfig cosClientConfig;
 
-    @Resource
+    @Autowired(required = false)
     private COSClient cosClient;
 
     /**
@@ -34,7 +33,7 @@ public class CosManager {
     public PutObjectResult putObject(String key, File file) {
         PutObjectRequest putObjectRequest = new PutObjectRequest(cosClientConfig.getBucket(), key,
                 file);
-        return cosClient.putObject(putObjectRequest);
+        return getCosClient().putObject(putObjectRequest);
     }
 
     /**
@@ -44,7 +43,7 @@ public class CosManager {
      */
     public COSObject getObject(String key) {
         GetObjectRequest getObjectRequest = new GetObjectRequest(cosClientConfig.getBucket(), key);
-        return cosClient.getObject(getObjectRequest);
+        return getCosClient().getObject(getObjectRequest);
     }
 
     /**
@@ -53,6 +52,13 @@ public class CosManager {
      * @param key 唯一键
      */
     public void deleteObject(String key) {
-        cosClient.deleteObject(cosClientConfig.getBucket(), key);
+        getCosClient().deleteObject(cosClientConfig.getBucket(), key);
+    }
+
+    private COSClient getCosClient() {
+        if (cosClient == null) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "COS配置未完成");
+        }
+        return cosClient;
     }
 }

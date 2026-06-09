@@ -2,7 +2,13 @@ package study.studyai.service;
 
 import study.studyai.model.entity.User;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import study.studyai.model.dto.user.UserAddRequest;
+import study.studyai.model.dto.user.UserProfileRequest;
+import study.studyai.model.dto.user.UserQueryRequest;
+import study.studyai.model.dto.user.UserUpdateRequest;
 import study.studyai.model.vo.LoginUserVO;
+import study.studyai.model.vo.UserProfileVO;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -21,4 +27,20 @@ public interface UserService extends IService<User> {
     User getLoginUser(HttpServletRequest request);
 
     boolean userLogout(HttpServletRequest request);
+
+    UserProfileVO updateMyProfile(UserProfileRequest userProfileRequest, HttpServletRequest request);
+
+    UserProfileVO getMyProfile(HttpServletRequest request);
+
+    UserProfileVO updateUserProfile(UserProfileRequest userProfileRequest);
+
+    UserProfileVO getUserProfile(Long userId);
+
+    Long addUser(UserAddRequest userAddRequest);
+
+    boolean deleteUser(Long id);
+
+    boolean updateUser(UserUpdateRequest userUpdateRequest);
+
+    Page<LoginUserVO> listUserByPage(UserQueryRequest userQueryRequest);
 }

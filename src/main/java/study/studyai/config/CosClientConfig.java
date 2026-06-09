@@ -8,6 +8,7 @@ import com.qcloud.cos.auth.COSCredentials;
 import com.qcloud.cos.http.HttpProtocol;
 import com.qcloud.cos.region.Region;
 import lombok.Data;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -43,6 +44,7 @@ public class CosClientConfig {
     private String bucket;
 
     @Bean
+    @ConditionalOnProperty(prefix = "cos.client", name = {"secret-id", "secret-key", "region", "bucket"})
     public COSClient cosClient() {
         // 1 初始化用户身份信息（secretId, secretKey）。
         // SECRETID 和 SECRETKEY 请登录访问管理控制台 https://console.cloud.tencent.com/cam/capi 进行查看和管理
