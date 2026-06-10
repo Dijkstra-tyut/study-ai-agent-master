@@ -1,11 +1,8 @@
-package study.studyai.controller;
+package study.studyai.service.impl;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
-import com.qcloud.cos.model.COSObject;
-import com.qcloud.cos.model.COSObjectInputStream;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import study.studyai.common.BaseResponse;
 import study.studyai.common.ErrorCode;
@@ -13,78 +10,42 @@ import study.studyai.common.ResultUtils;
 import study.studyai.config.CosClientConfig;
 import study.studyai.exception.BusinessException;
 import study.studyai.manager.CosManager;
+import study.studyai.model.entity.User;
 import study.studyai.service.FileService;
 import study.studyai.service.UserService;
 
 import javax.annotation.Resource;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.File;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
 
-@Slf4j
-@RestController
-@RequestMapping("/file")
-public class FileController {
 
-    @Resource
-    private CosManager cosManager;
-
-    @Resource
-    private CosClientConfig cosClientConfig;
+@Service
+public class FileServiceImpl implements FileService {
 
     @Resource
     private UserService userService;
-
     @Resource
-    private FileService fileService;
+    private CosManager cosManager;
+    @Resource
+    private CosClientConfig cosClientConfig;
 
-    @PostMapping("/upload")
-    public BaseResponse<String> uploadFile(@RequestPart("file") MultipartFile multipartFile) {
-        String fileUrl = uploadFileToCos(multipartFile, "file", false);
+
+    @Override
+    public BaseResponse<String> uploadAvatar(MultipartFile multipartFile, HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        String fileUrl = uploadFileToCos(multipartFile, "avatar", true);
+        User user = new User();
+        user.setId(loginUser.getId());
+        user.setAvatar(fileUrl);
+        boolean result = userService.updateById(user);
+        if (!result) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR);
+        }
         return ResultUtils.success(fileUrl);
     }
 
-    @PostMapping("/upload/avatar")
-    public BaseResponse<String> uploadAvatar(@RequestPart("file") MultipartFile multipartFile, HttpServletRequest request) {
-        return fileService.uploadAvatar(multipartFile, request);
-    }
-
-    @GetMapping("/download")
-    public void downloadFile(String key, HttpServletResponse response) {
-        if (StrUtil.isBlank(key)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        COSObject cosObject = cosManager.getObject(key);
-        try (COSObjectInputStream cosObjectInputStream = cosObject.getObjectContent();
-             ServletOutputStream outputStream = response.getOutputStream()) {
-            String fileName = key.substring(key.lastIndexOf("/") + 1);
-            response.setContentType("application/octet-stream");
-            response.setHeader("Content-Disposition", "attachment; filename=" + URLEncoder.encode(fileName, StandardCharsets.UTF_8.name()));
-            byte[] buffer = new byte[1024];
-            int len;
-            while ((len = cosObjectInputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, len);
-            }
-        } catch (Exception e) {
-            log.error("download file error", e);
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "下载失败");
-        }
-    }
-
-    @PostMapping("/delete")
-    public BaseResponse<Boolean> deleteFile(String key) {
-        if (StrUtil.isBlank(key)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        cosManager.deleteObject(key);
-        return ResultUtils.success(true);
-    }
 
     private String uploadFileToCos(MultipartFile multipartFile, String biz, boolean checkImage) {
         if (multipartFile == null || multipartFile.isEmpty()) {

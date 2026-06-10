@@ -3,12 +3,15 @@ package study.studyai.model.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
+
 import java.util.Date;
 
 /**
  * 用户表 (统一管理所有角色)
  * @TableName user
  */
+@Data
 @TableName(value ="user")
 public class User {
     /**

@@ -3,6 +3,7 @@ package study.studyai.model.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
 
 import java.util.Date;
 
@@ -10,6 +11,7 @@ import java.util.Date;
  * 学生信息表 (用户画像)
  * @TableName student_profile
  */
+@Data
 @TableName(value ="student_profile")
 public class Student {
 
