@@ -28,4 +28,6 @@ public interface CourseService {
     boolean updateCourseFile(CourseFileUpdateRequest courseFileUpdateRequest, User loginUser);
 
     Page<CourseFile> listCourseFileByPage(CourseFileQueryRequest courseFileQueryRequest, User loginUser);
+
+    CourseFile getCourseFile(Long id, User loginUser);
 }

@@ -2,7 +2,7 @@ package study.studyai.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import com.qcloud.cos.model.COSObject;
-import com.sun.tools.javac.comp.Todo;
+import com.qcloud.cos.model.COSObjectInputStream;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import study.studyai.common.BaseResponse;
@@ -19,8 +19,12 @@ import study.studyai.service.FileService;
 import study.studyai.service.UserService;
 
 import javax.annotation.Resource;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 @Service
@@ -52,7 +56,6 @@ public class FileServiceImpl implements FileService {
         return ResultUtils.success(fileUploadVO.getFileUrl());
     }
 
-    // TODO 这里感觉不对，把头像和文件，全使用了FileUploadVO，但是头像应该是仅保存在User中就可以，不用存到课程文件表中，后续可以优化一下
     @Override
     public FileUploadVO uploadFile(MultipartFile multipartFile, FileUploadEnum fileUploadEnum) {
         if (fileUploadEnum == null) {
@@ -83,6 +86,24 @@ public class FileServiceImpl implements FileService {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         return cosManager.getObject(key);
+    }
+
+    @Override
+    public void downloadFileToResponse(String key, HttpServletResponse response) {
+        COSObject cosObject = this.downloadFile(key);
+        try (COSObjectInputStream cosObjectInputStream = cosObject.getObjectContent();
+             ServletOutputStream outputStream = response.getOutputStream()) {
+            String fileName = key.substring(key.lastIndexOf("/") + 1);
+            response.setContentType("application/octet-stream");
+            response.setHeader("Content-Disposition", "attachment; filename=" + URLEncoder.encode(fileName, StandardCharsets.UTF_8.name()));
+            byte[] buffer = new byte[1024];
+            int len;
+            while ((len = cosObjectInputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, len);
+            }
+        } catch (Exception e) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "下载失败");
+        }
     }
 
     @Override

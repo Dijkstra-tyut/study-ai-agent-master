@@ -5,6 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 import study.studyai.common.ErrorCode;
 import study.studyai.constant.UserConstant;
@@ -163,6 +164,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public UserProfileVO updateMyProfile(UserProfileRequest userProfileRequest, HttpServletRequest request) {
         User loginUser = this.getLoginUser(request);
         userProfileRequest.setUserId(loginUser.getId());
@@ -176,6 +178,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public UserProfileVO updateUserProfile(UserProfileRequest userProfileRequest) {
         if (userProfileRequest == null || userProfileRequest.getUserId() == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -262,6 +265,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public boolean deleteUser(Long id) {
         if (id == null || id <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);

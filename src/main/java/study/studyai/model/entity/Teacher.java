@@ -12,6 +12,7 @@ import java.util.Date;
  * @TableName teacher_profile
  */
 @Data
+@TableName(value ="teacher_profile")
 public class Teacher {
 
     /**

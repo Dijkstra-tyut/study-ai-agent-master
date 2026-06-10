@@ -1,4 +1,4 @@
-CREATE TABLE `course` (
+CREATE TABLE IF NOT EXISTS `course` (
                           `course_id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '课程ID',
                           `course_name` VARCHAR(100) NOT NULL COMMENT '课程名称',
                           `teacher_id` BIGINT NOT NULL COMMENT '负责人 (关联 teacher_profile/user 表的主键)',
@@ -9,7 +9,7 @@ CREATE TABLE `course` (
                           KEY `idx_teacher_id` (`teacher_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='课程表';
 
-CREATE TABLE `course_file` (
+CREATE TABLE IF NOT EXISTS `course_file` (
                                `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '课程文件ID',
                                `course_id` BIGINT NOT NULL COMMENT '课程ID',
                                `teacher_id` BIGINT NOT NULL COMMENT '上传教师ID',

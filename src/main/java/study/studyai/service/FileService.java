@@ -7,6 +7,7 @@ import study.studyai.model.enums.FileUploadEnum;
 import study.studyai.model.vo.FileUploadVO;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 public interface FileService {
 
@@ -15,6 +16,8 @@ public interface FileService {
     FileUploadVO uploadFile(MultipartFile multipartFile, FileUploadEnum fileUploadEnum);
 
     COSObject downloadFile(String key);
+
+    void downloadFileToResponse(String key, HttpServletResponse response);
 
     boolean deleteFile(String key);
 }

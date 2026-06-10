@@ -1,8 +1,5 @@
 package study.studyai.controller;
 
-import com.qcloud.cos.model.COSObject;
-import com.qcloud.cos.model.COSObjectInputStream;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import study.studyai.common.BaseResponse;
@@ -12,15 +9,12 @@ import study.studyai.exception.BusinessException;
 import study.studyai.model.enums.FileUploadEnum;
 import study.studyai.model.vo.FileUploadVO;
 import study.studyai.service.FileService;
+import study.studyai.service.UserService;
 
 import javax.annotation.Resource;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 
-@Slf4j
 @RestController
 @RequestMapping("/file")
 public class FileController {
@@ -28,8 +22,12 @@ public class FileController {
     @Resource
     private FileService fileService;
 
+    @Resource
+    private UserService userService;
+
     @PostMapping("/upload")
-    public BaseResponse<FileUploadVO> uploadFile(@RequestPart("file") MultipartFile multipartFile, String biz) {
+    public BaseResponse<FileUploadVO> uploadFile(@RequestPart("file") MultipartFile multipartFile, String biz, HttpServletRequest request) {
+        userService.getLoginUser(request);
         FileUploadEnum fileUploadEnum = FileUploadEnum.getEnumByValue(biz);
         if (fileUploadEnum == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -44,26 +42,14 @@ public class FileController {
     }
 
     @GetMapping("/download")
-    public void downloadFile(String key, HttpServletResponse response) {
-        COSObject cosObject = fileService.downloadFile(key);
-        try (COSObjectInputStream cosObjectInputStream = cosObject.getObjectContent();
-             ServletOutputStream outputStream = response.getOutputStream()) {
-            String fileName = key.substring(key.lastIndexOf("/") + 1);
-            response.setContentType("application/octet-stream");
-            response.setHeader("Content-Disposition", "attachment; filename=" + URLEncoder.encode(fileName, StandardCharsets.UTF_8.name()));
-            byte[] buffer = new byte[1024];
-            int len;
-            while ((len = cosObjectInputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, len);
-            }
-        } catch (Exception e) {
-            log.error("download file error", e);
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "下载失败");
-        }
+    public void downloadFile(String key, HttpServletRequest request, HttpServletResponse response) {
+        userService.getLoginUser(request);
+        fileService.downloadFileToResponse(key, response);
     }
 
     @PostMapping("/delete")
-    public BaseResponse<Boolean> deleteFile(String key) {
+    public BaseResponse<Boolean> deleteFile(String key, HttpServletRequest request) {
+        userService.getLoginUser(request);
         boolean result = fileService.deleteFile(key);
         return ResultUtils.success(result);
     }
