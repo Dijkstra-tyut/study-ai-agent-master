@@ -1,7 +1,5 @@
 package study.studyai.controller;
 
-import cn.hutool.core.io.FileUtil;
-import cn.hutool.core.util.StrUtil;
 import com.qcloud.cos.model.COSObject;
 import com.qcloud.cos.model.COSObjectInputStream;
 import lombok.extern.slf4j.Slf4j;
@@ -10,22 +8,17 @@ import org.springframework.web.multipart.MultipartFile;
 import study.studyai.common.BaseResponse;
 import study.studyai.common.ErrorCode;
 import study.studyai.common.ResultUtils;
-import study.studyai.config.CosClientConfig;
 import study.studyai.exception.BusinessException;
-import study.studyai.manager.CosManager;
+import study.studyai.model.enums.FileUploadEnum;
+import study.studyai.model.vo.FileUploadVO;
 import study.studyai.service.FileService;
-import study.studyai.service.UserService;
 
 import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -33,21 +26,16 @@ import java.util.UUID;
 public class FileController {
 
     @Resource
-    private CosManager cosManager;
-
-    @Resource
-    private CosClientConfig cosClientConfig;
-
-    @Resource
-    private UserService userService;
-
-    @Resource
     private FileService fileService;
 
     @PostMapping("/upload")
-    public BaseResponse<String> uploadFile(@RequestPart("file") MultipartFile multipartFile) {
-        String fileUrl = uploadFileToCos(multipartFile, "file", false);
-        return ResultUtils.success(fileUrl);
+    public BaseResponse<FileUploadVO> uploadFile(@RequestPart("file") MultipartFile multipartFile, String biz) {
+        FileUploadEnum fileUploadEnum = FileUploadEnum.getEnumByValue(biz);
+        if (fileUploadEnum == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        FileUploadVO fileUploadVO = fileService.uploadFile(multipartFile, fileUploadEnum);
+        return ResultUtils.success(fileUploadVO);
     }
 
     @PostMapping("/upload/avatar")
@@ -57,10 +45,7 @@ public class FileController {
 
     @GetMapping("/download")
     public void downloadFile(String key, HttpServletResponse response) {
-        if (StrUtil.isBlank(key)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        COSObject cosObject = cosManager.getObject(key);
+        COSObject cosObject = fileService.downloadFile(key);
         try (COSObjectInputStream cosObjectInputStream = cosObject.getObjectContent();
              ServletOutputStream outputStream = response.getOutputStream()) {
             String fileName = key.substring(key.lastIndexOf("/") + 1);
@@ -79,59 +64,7 @@ public class FileController {
 
     @PostMapping("/delete")
     public BaseResponse<Boolean> deleteFile(String key) {
-        if (StrUtil.isBlank(key)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        cosManager.deleteObject(key);
-        return ResultUtils.success(true);
-    }
-
-    private String uploadFileToCos(MultipartFile multipartFile, String biz, boolean checkImage) {
-        if (multipartFile == null || multipartFile.isEmpty()) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "文件不能为空");
-        }
-        // 校验文件后缀
-        String originalFilename = multipartFile.getOriginalFilename();
-        String suffix = FileUtil.getSuffix(originalFilename);
-        if (StrUtil.isBlank(suffix)) {
-            suffix = "tmp";
-        }
-        if (checkImage && !Arrays.asList("jpg", "jpeg", "png", "webp").contains(suffix.toLowerCase())) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "头像格式错误");
-        }
-        File file = null;
-        try {
-            file = File.createTempFile("cos-upload-", "." + suffix);
-            multipartFile.transferTo(file);
-            String key = String.format("%s/%s.%s", biz, UUID.randomUUID(), suffix);
-            cosManager.putObject(key, file);
-            return getFileUrl(key);
-        } catch (Exception e) {
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "上传失败");
-        } finally {
-            // 临时文件清理
-            this.deleteTempFile(file);
-        }
-    }
-
-    private String getFileUrl(String key) {
-        String host = cosClientConfig.getHost();
-        if (StrUtil.isBlank(host)) {
-            return key;
-        }
-        return host + "/" + key;
-    }
-
-    //TODO 文件校验 通过大模型校验上传的文件是否符合规则
-    private void validFile(MultipartFile multipartFile) {
-
-    }
-
-    public void deleteTempFile(File file) {
-        if (file == null) {
-            return;
-        }
-        // 删除临时文件
-        boolean deleteResult = file.delete();
+        boolean result = fileService.deleteFile(key);
+        return ResultUtils.success(result);
     }
 }

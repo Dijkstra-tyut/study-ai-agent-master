@@ -8,3 +8,20 @@ CREATE TABLE `course` (
                           PRIMARY KEY (`course_id`),
                           KEY `idx_teacher_id` (`teacher_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='课程表';
+
+CREATE TABLE `course_file` (
+                               `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '课程文件ID',
+                               `course_id` BIGINT NOT NULL COMMENT '课程ID',
+                               `teacher_id` BIGINT NOT NULL COMMENT '上传教师ID',
+                               `file_name` VARCHAR(255) NOT NULL COMMENT '文件名',
+                               `file_key` VARCHAR(500) NOT NULL COMMENT 'COS对象key',
+                               `file_url` VARCHAR(1000) NOT NULL COMMENT '文件访问地址',
+                               `file_type` VARCHAR(50) DEFAULT NULL COMMENT '文件类型',
+                               `file_size` BIGINT DEFAULT NULL COMMENT '文件大小',
+                               `review_status` VARCHAR(20) NOT NULL DEFAULT 'pending' COMMENT '审核状态',
+                               `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                               `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                               PRIMARY KEY (`id`),
+                               KEY `idx_course_id` (`course_id`),
+                               KEY `idx_teacher_id` (`teacher_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='课程文件表';

@@ -2,7 +2,6 @@ package study.studyai.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import study.studyai.annotation.AuthCheck;
 import study.studyai.common.BaseResponse;
 import study.studyai.common.DeleteRequest;
@@ -25,8 +24,8 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 @RestController
-@RequestMapping("/teacher")
-public class TeacherController {
+@RequestMapping("/course")
+public class CourseController {
 
     @Resource
     private UserService userService;
@@ -34,8 +33,8 @@ public class TeacherController {
     @Resource
     private CourseService courseService;
 
-    @PostMapping("/course/add")
-    @AuthCheck(mustRole = UserConstant.TEACHER_ROLE)
+    @PostMapping("/admin/add")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Long> addCourse(@RequestBody CourseAddRequest courseAddRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(courseAddRequest == null, ErrorCode.PARAMS_ERROR);
         User loginUser = userService.getLoginUser(request);
@@ -43,8 +42,8 @@ public class TeacherController {
         return ResultUtils.success(courseId);
     }
 
-    @PostMapping("/course/delete")
-    @AuthCheck(mustRole = UserConstant.TEACHER_ROLE)
+    @PostMapping("/admin/delete")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> deleteCourse(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(deleteRequest == null || deleteRequest.getId() == null, ErrorCode.PARAMS_ERROR);
         User loginUser = userService.getLoginUser(request);
@@ -52,8 +51,8 @@ public class TeacherController {
         return ResultUtils.success(result);
     }
 
-    @PostMapping("/course/update")
-    @AuthCheck(mustRole = UserConstant.TEACHER_ROLE)
+    @PostMapping("/admin/update")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> updateCourse(@RequestBody CourseUpdateRequest courseUpdateRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(courseUpdateRequest == null, ErrorCode.PARAMS_ERROR);
         User loginUser = userService.getLoginUser(request);
@@ -61,8 +60,8 @@ public class TeacherController {
         return ResultUtils.success(result);
     }
 
-    @PostMapping("/course/list/page")
-    @AuthCheck(mustRole = UserConstant.TEACHER_ROLE)
+    @PostMapping("/admin/list/page")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Page<Course>> listCourseByPage(@RequestBody CourseQueryRequest courseQueryRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(courseQueryRequest == null, ErrorCode.PARAMS_ERROR);
         User loginUser = userService.getLoginUser(request);
@@ -70,16 +69,8 @@ public class TeacherController {
         return ResultUtils.success(coursePage);
     }
 
-    @PostMapping("/course/file/upload")
-    @AuthCheck(mustRole = UserConstant.TEACHER_ROLE)
-    public BaseResponse<CourseFile> uploadCourseFile(Long courseId, @RequestPart("file") MultipartFile multipartFile, HttpServletRequest request) {
-        User loginUser = userService.getLoginUser(request);
-        CourseFile courseFile = courseService.uploadCourseFile(courseId, multipartFile, loginUser);
-        return ResultUtils.success(courseFile);
-    }
-
-    @PostMapping("/course/file/delete")
-    @AuthCheck(mustRole = UserConstant.TEACHER_ROLE)
+    @PostMapping("/admin/file/delete")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> deleteCourseFile(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(deleteRequest == null || deleteRequest.getId() == null, ErrorCode.PARAMS_ERROR);
         User loginUser = userService.getLoginUser(request);
@@ -87,8 +78,8 @@ public class TeacherController {
         return ResultUtils.success(result);
     }
 
-    @PostMapping("/course/file/update")
-    @AuthCheck(mustRole = UserConstant.TEACHER_ROLE)
+    @PostMapping("/admin/file/update")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> updateCourseFile(@RequestBody CourseFileUpdateRequest courseFileUpdateRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(courseFileUpdateRequest == null, ErrorCode.PARAMS_ERROR);
         User loginUser = userService.getLoginUser(request);
@@ -96,8 +87,8 @@ public class TeacherController {
         return ResultUtils.success(result);
     }
 
-    @PostMapping("/course/file/list/page")
-    @AuthCheck(mustRole = UserConstant.TEACHER_ROLE)
+    @PostMapping("/admin/file/list/page")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Page<CourseFile>> listCourseFileByPage(@RequestBody CourseFileQueryRequest courseFileQueryRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(courseFileQueryRequest == null, ErrorCode.PARAMS_ERROR);
         User loginUser = userService.getLoginUser(request);
