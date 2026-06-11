@@ -60,6 +60,6 @@ public class FileManager {
     }
 
     private boolean isDocumentFile(FileUploadEnum fileUploadEnum) {
-        return FileUploadEnum.COURSE.equals(fileUploadEnum) || FileUploadEnum.KNOWLEDGE.equals(fileUploadEnum);
+        return FileUploadEnum.COURSE.equals(fileUploadEnum) ;
     }
 }

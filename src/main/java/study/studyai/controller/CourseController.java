@@ -38,6 +38,7 @@ public class CourseController {
     @Resource
     private FileService fileService;
 
+    //TODO 课程的这些功能接口，应该是管理员和教师都可以操作。接口名称也需要改一下。 这些权限设置一下。
     @PostMapping("/admin/add")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Long> addAdminCourse(@RequestBody CourseAddRequest courseAddRequest, HttpServletRequest request) {

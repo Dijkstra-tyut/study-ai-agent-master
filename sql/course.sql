@@ -25,3 +25,11 @@ CREATE TABLE IF NOT EXISTS `course_file` (
                                KEY `idx_course_id` (`course_id`),
                                KEY `idx_teacher_id` (`teacher_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='课程文件表';
+
+CREATE TABLE `chapter` (
+                           `chapter_id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '章节ID',
+                           `course_id` bigint(20) NOT NULL COMMENT '课程ID',
+                           `chapter_name` varchar(255) NOT NULL COMMENT '章节名称',
+                           PRIMARY KEY (`chapter_id`),
+                           KEY `idx_course_id` (`course_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='章节表';

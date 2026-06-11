@@ -38,6 +38,7 @@ public class CourseServiceImpl implements CourseService {
     @Resource
     private FileService fileService;
 
+    //TODO 我不是已经设置了AOP切面权限验证了吗 这里需要验证权限的再检查一下，不要重复
     @Override
     public Long addCourse(CourseAddRequest courseAddRequest, User loginUser) {
         if (courseAddRequest == null || StrUtil.isBlank(courseAddRequest.getCourse_name())) {
