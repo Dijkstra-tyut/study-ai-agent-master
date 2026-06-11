@@ -12,6 +12,4 @@ public class CourseFileUpdateRequest implements Serializable {
     private Long id;
 
     private String file_name;
-
-    private String review_status;
 }

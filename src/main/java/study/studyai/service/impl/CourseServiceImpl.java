@@ -38,7 +38,6 @@ public class CourseServiceImpl implements CourseService {
     @Resource
     private FileService fileService;
 
-    //TODO 我不是已经设置了AOP切面权限验证了吗 这里需要验证权限的再检查一下，不要重复
     @Override
     public Long addCourse(CourseAddRequest courseAddRequest, User loginUser) {
         if (courseAddRequest == null || StrUtil.isBlank(courseAddRequest.getCourse_name())) {
@@ -62,7 +61,7 @@ public class CourseServiceImpl implements CourseService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean deleteCourse(Long courseId, User loginUser) {
-        Course course = getCourseAndCheckAuth(courseId, loginUser);
+        Course course = getCourseAndCheckOwner(courseId, loginUser);
         QueryWrapper<CourseFile> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("course_id", course.getCourse_id());
         for (CourseFile courseFile : courseFileMapper.selectList(queryWrapper)) {
@@ -77,7 +76,7 @@ public class CourseServiceImpl implements CourseService {
         if (courseUpdateRequest == null || courseUpdateRequest.getCourse_id() == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        getCourseAndCheckAuth(courseUpdateRequest.getCourse_id(), loginUser);
+        getCourseAndCheckOwner(courseUpdateRequest.getCourse_id(), loginUser);
         Course course = new Course();
         course.setCourse_id(courseUpdateRequest.getCourse_id());
         if (StrUtil.isNotBlank(courseUpdateRequest.getCourse_name())) {
@@ -101,28 +100,24 @@ public class CourseServiceImpl implements CourseService {
         queryWrapper.eq(courseQueryRequest.getCourse_id() != null, "course_id", courseQueryRequest.getCourse_id());
         queryWrapper.like(StrUtil.isNotBlank(courseQueryRequest.getCourse_name()), "course_name", courseQueryRequest.getCourse_name());
         queryWrapper.eq(courseQueryRequest.getTeacher_id() != null, "teacher_id", courseQueryRequest.getTeacher_id());
-        if (!isAdmin(loginUser)) {
-            queryWrapper.eq(isTeacher(loginUser), "teacher_id", loginUser.getId());
-        }
         return courseMapper.selectPage(new Page<>(courseQueryRequest.getCurrent(), courseQueryRequest.getPageSize()), queryWrapper);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public CourseFile uploadCourseFile(Long courseId, MultipartFile multipartFile, User loginUser) {
-        Course course = getCourseAndCheckAuth(courseId, loginUser);
+        Course course = getCourseAndCheckOwner(courseId, loginUser);
+        // TODO 接入大模型后，先判断课程文件是否符合课程主题，不符合直接拒绝上传；符合后解析文件章节并写入章节表。
         FileUploadVO fileUploadVO = fileService.uploadFile(multipartFile, FileUploadEnum.COURSE);
         try {
             CourseFile courseFile = new CourseFile();
             courseFile.setCourse_id(course.getCourse_id());
-            courseFile.setTeacher_id(loginUser.getId());
+            courseFile.setTeacher_id(course.getTeacher_id());
             courseFile.setFile_name(fileUploadVO.getFileName());
             courseFile.setFile_key(fileUploadVO.getFileKey());
             courseFile.setFile_url(fileUploadVO.getFileUrl());
             courseFile.setFile_type(fileUploadVO.getFileType());
             courseFile.setFile_size(fileUploadVO.getFileSize());
-            courseFile.setReview_status("pending");
-            // TODO 接入大模型后，在这里根据课程主题审核文件内容，并更新 review_status。
             int result = courseFileMapper.insert(courseFile);
             if (result <= 0) {
                 throw new BusinessException(ErrorCode.OPERATION_ERROR);
@@ -137,7 +132,7 @@ public class CourseServiceImpl implements CourseService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean deleteCourseFile(Long id, User loginUser) {
-        CourseFile courseFile = getCourseFileAndCheckAuth(id, loginUser);
+        CourseFile courseFile = getCourseFileAndCheckOwner(id, loginUser);
         fileService.deleteFile(courseFile.getFile_key());
         return courseFileMapper.deleteById(id) > 0;
     }
@@ -147,14 +142,11 @@ public class CourseServiceImpl implements CourseService {
         if (courseFileUpdateRequest == null || courseFileUpdateRequest.getId() == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        getCourseFileAndCheckAuth(courseFileUpdateRequest.getId(), loginUser);
+        getCourseFileAndCheckOwner(courseFileUpdateRequest.getId(), loginUser);
         CourseFile courseFile = new CourseFile();
         courseFile.setId(courseFileUpdateRequest.getId());
         if (StrUtil.isNotBlank(courseFileUpdateRequest.getFile_name())) {
             courseFile.setFile_name(courseFileUpdateRequest.getFile_name());
-        }
-        if (isAdmin(loginUser) && StrUtil.isNotBlank(courseFileUpdateRequest.getReview_status())) {
-            courseFile.setReview_status(courseFileUpdateRequest.getReview_status());
         }
         return courseFileMapper.updateById(courseFile) > 0;
     }
@@ -168,18 +160,15 @@ public class CourseServiceImpl implements CourseService {
         queryWrapper.eq(courseFileQueryRequest.getCourseId() != null, "course_id", courseFileQueryRequest.getCourseId());
         queryWrapper.eq(courseFileQueryRequest.getTeacherId() != null, "teacher_id", courseFileQueryRequest.getTeacherId());
         queryWrapper.like(StrUtil.isNotBlank(courseFileQueryRequest.getFileName()), "file_name", courseFileQueryRequest.getFileName());
-        if (!isAdmin(loginUser)) {
-            queryWrapper.eq(isTeacher(loginUser), "teacher_id", loginUser.getId());
-        }
         return courseFileMapper.selectPage(new Page<>(courseFileQueryRequest.getCurrent(), courseFileQueryRequest.getPageSize()), queryWrapper);
     }
 
     @Override
     public CourseFile getCourseFile(Long id, User loginUser) {
-        return getCourseFileAndCheckAuth(id, loginUser);
+        return getCourseFile(id);
     }
 
-    private Course getCourseAndCheckAuth(Long courseId, User loginUser) {
+    private Course getCourseAndCheckOwner(Long courseId, User loginUser) {
         if (courseId == null || courseId <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -187,22 +176,27 @@ public class CourseServiceImpl implements CourseService {
         if (course == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
         }
-        if (!isAdmin(loginUser) && !course.getTeacher_id().equals(loginUser.getId())) {
+        if (isTeacher(loginUser) && !course.getTeacher_id().equals(loginUser.getId())) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
         }
         return course;
     }
 
-    private CourseFile getCourseFileAndCheckAuth(Long id, User loginUser) {
+    private CourseFile getCourseFileAndCheckOwner(Long id, User loginUser) {
+        CourseFile courseFile = getCourseFile(id);
+        if (isTeacher(loginUser) && !courseFile.getTeacher_id().equals(loginUser.getId())) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+        }
+        return courseFile;
+    }
+
+    private CourseFile getCourseFile(Long id) {
         if (id == null || id <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         CourseFile courseFile = courseFileMapper.selectById(id);
         if (courseFile == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
-        }
-        if (!isAdmin(loginUser) && isTeacher(loginUser) && !courseFile.getTeacher_id().equals(loginUser.getId())) {
-            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
         }
         return courseFile;
     }

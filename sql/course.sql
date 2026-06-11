@@ -18,7 +18,6 @@ CREATE TABLE IF NOT EXISTS `course_file` (
                                `file_url` VARCHAR(1000) NOT NULL COMMENT '文件访问地址',
                                `file_type` VARCHAR(50) DEFAULT NULL COMMENT '文件类型',
                                `file_size` BIGINT DEFAULT NULL COMMENT '文件大小',
-                               `review_status` VARCHAR(20) NOT NULL DEFAULT 'pending' COMMENT '审核状态',
                                `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
                                `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
                                PRIMARY KEY (`id`),
@@ -26,7 +25,7 @@ CREATE TABLE IF NOT EXISTS `course_file` (
                                KEY `idx_teacher_id` (`teacher_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='课程文件表';
 
-CREATE TABLE `chapter` (
+CREATE TABLE IF NOT EXISTS `chapter` (
                            `chapter_id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '章节ID',
                            `course_id` bigint(20) NOT NULL COMMENT '课程ID',
                            `chapter_name` varchar(255) NOT NULL COMMENT '章节名称',

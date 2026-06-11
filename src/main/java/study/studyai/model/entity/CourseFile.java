@@ -30,8 +30,6 @@ public class CourseFile {
 
     private Long file_size;
 
-    private String review_status;
-
     private Date create_time;
 
     private Date update_time;
@@ -98,14 +96,6 @@ public class CourseFile {
 
     public void setFile_size(Long file_size) {
         this.file_size = file_size;
-    }
-
-    public String getReview_status() {
-        return review_status;
-    }
-
-    public void setReview_status(String review_status) {
-        this.review_status = review_status;
     }
 
     public Date getCreate_time() {
