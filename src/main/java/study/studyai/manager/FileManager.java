@@ -27,8 +27,7 @@ public class FileManager {
         if (FileUploadEnum.AVATAR.equals(fileUploadEnum) && !IMAGE_SUFFIX_LIST.contains(suffix)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "头像格式错误");
         }
-        if ((FileUploadEnum.COURSE.equals(fileUploadEnum) || FileUploadEnum.KNOWLEDGE.equals(fileUploadEnum))
-                && !DOCUMENT_SUFFIX_LIST.contains(suffix)) {
+        if (FileUploadEnum.COURSE.equals(fileUploadEnum) && !DOCUMENT_SUFFIX_LIST.contains(suffix)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "文件格式错误");
         }
         // TODO 接入大模型后，在这里校验上传文件内容是否符合课程或知识库主题。

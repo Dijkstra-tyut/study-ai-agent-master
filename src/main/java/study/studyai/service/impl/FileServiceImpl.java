@@ -2,6 +2,7 @@ package study.studyai.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import com.qcloud.cos.model.COSObject;
+import com.sun.tools.javac.comp.Todo;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import study.studyai.common.BaseResponse;
@@ -51,6 +52,7 @@ public class FileServiceImpl implements FileService {
         return ResultUtils.success(fileUploadVO.getFileUrl());
     }
 
+    // TODO 这里感觉不对，把头像和文件，全使用了FileUploadVO，但是头像应该是仅保存在User中就可以，不用存到课程文件表中，后续可以优化一下
     @Override
     public FileUploadVO uploadFile(MultipartFile multipartFile, FileUploadEnum fileUploadEnum) {
         if (fileUploadEnum == null) {
