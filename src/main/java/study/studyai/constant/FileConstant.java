@@ -8,6 +8,7 @@ public interface FileConstant {
 
     /**
      * COS 访问地址
+     * 这里更改为自己的 COS 地址
      */
 //    String COS_HOST
 }

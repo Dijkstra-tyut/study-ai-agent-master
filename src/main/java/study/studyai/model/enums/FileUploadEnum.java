@@ -8,6 +8,7 @@ public enum FileUploadEnum {
 
     AVATAR("头像","avatar"),
     COURSE("课程文件","course"),
+    KNOWLEDGE("知识库文件","knowledge"),
     TEXT("文本","text");
 
     private final String text;
