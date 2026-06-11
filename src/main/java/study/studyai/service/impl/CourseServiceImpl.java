@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import study.studyai.common.ErrorCode;
 import study.studyai.exception.BusinessException;
+import study.studyai.manager.FileManager;
 import study.studyai.mapper.CourseFileMapper;
 import study.studyai.mapper.CourseMapper;
 import study.studyai.model.dto.course.CourseAddRequest;
@@ -37,6 +38,9 @@ public class CourseServiceImpl implements CourseService {
 
     @Resource
     private FileService fileService;
+
+    @Resource
+    private FileManager fileManager;
 
     @Override
     public Long addCourse(CourseAddRequest courseAddRequest, User loginUser) {
@@ -105,9 +109,11 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public CourseFile uploadCourseFile(Long courseId, MultipartFile multipartFile, User loginUser) {
+    public CourseFile uploadCourseFile(Long courseId, MultipartFile multipartFile, User loginUser, Boolean needChapterAnalysis) {
         Course course = getCourseAndCheckOwner(courseId, loginUser);
-        // TODO 接入大模型后，先判断课程文件是否符合课程主题，不符合直接拒绝上传；符合后解析文件章节并写入章节表。
+        fileManager.validFile(multipartFile, FileUploadEnum.COURSE);
+        // TODO 在这里接入大模型检查! multipartFile 还在内存中
+        //validateCourseFileContent(multipartFile);
         FileUploadVO fileUploadVO = fileService.uploadFile(multipartFile, FileUploadEnum.COURSE);
         try {
             CourseFile courseFile = new CourseFile();
@@ -122,6 +128,8 @@ public class CourseServiceImpl implements CourseService {
             if (result <= 0) {
                 throw new BusinessException(ErrorCode.OPERATION_ERROR);
             }
+            //TODO 这里上传完成 我需要得到用户是否选择了章节解析，如果选择了章节解析，我需要在这里调用大模型解析文件章节并写入章节表
+            //章节解析失败 不会删除文件，会显示文件上传成功 但是章节解析失败
             return courseFile;
         } catch (Exception e) {
             fileService.deleteFile(fileUploadVO.getFileKey());

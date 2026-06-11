@@ -21,7 +21,7 @@ public interface CourseService {
 
     Page<Course> listCourseByPage(CourseQueryRequest courseQueryRequest, User loginUser);
 
-    CourseFile uploadCourseFile(Long courseId, MultipartFile multipartFile, User loginUser);
+    CourseFile uploadCourseFile(Long courseId, MultipartFile multipartFile, User loginUser, Boolean needChapterAnalysis);
 
     boolean deleteCourseFile(Long id, User loginUser);
 

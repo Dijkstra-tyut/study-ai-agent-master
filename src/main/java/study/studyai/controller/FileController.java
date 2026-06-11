@@ -23,19 +23,19 @@ public class FileController {
     @Resource
     private FileService fileService;
 
-    @PostMapping("/upload")
-    @AuthCheck(mustRole = UserConstant.TEACHER_ROLE)
-    public BaseResponse<FileUploadVO> uploadFile(@RequestPart("file") MultipartFile multipartFile, String biz) {
-        FileUploadEnum fileUploadEnum = FileUploadEnum.getEnumByValue(biz);
-        if (fileUploadEnum == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        if (FileUploadEnum.COURSE.equals(fileUploadEnum)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "课程文件请使用课程文件上传接口");
-        }
-        FileUploadVO fileUploadVO = fileService.uploadFile(multipartFile, fileUploadEnum);
-        return ResultUtils.success(fileUploadVO);
-    }
+//    @PostMapping("/upload")
+//    @AuthCheck(mustRole = UserConstant.TEACHER_ROLE)
+//    public BaseResponse<FileUploadVO> uploadFile(@RequestPart("file") MultipartFile multipartFile, String biz) {
+//        FileUploadEnum fileUploadEnum = FileUploadEnum.getEnumByValue(biz);
+//        if (fileUploadEnum == null) {
+//            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+//        }
+//        if (FileUploadEnum.COURSE.equals(fileUploadEnum)) {
+//            throw new BusinessException(ErrorCode.PARAMS_ERROR, "课程文件请使用课程文件上传接口");
+//        }
+//        FileUploadVO fileUploadVO = fileService.uploadFile(multipartFile, fileUploadEnum);
+//        return ResultUtils.success(fileUploadVO);
+//    }
 
     @PostMapping("/upload/avatar")
     @AuthCheck
@@ -43,24 +43,24 @@ public class FileController {
         return fileService.uploadAvatar(multipartFile, request);
     }
 
-    @GetMapping("/download")
-    @AuthCheck
-    public void downloadFile(String key, HttpServletResponse response) {
-        checkNotCourseFile(key);
-        fileService.downloadFileToResponse(key, response);
-    }
+//    @GetMapping("/download")
+//    @AuthCheck
+//    public void downloadFile(String key, HttpServletResponse response) {
+//        checkNotCourseFile(key);
+//        fileService.downloadFileToResponse(key, response);
+//    }
 
-    @PostMapping("/delete")
-    @AuthCheck(mustRole = UserConstant.TEACHER_ROLE)
-    public BaseResponse<Boolean> deleteFile(String key) {
-        checkNotCourseFile(key);
-        boolean result = fileService.deleteFile(key);
-        return ResultUtils.success(result);
-    }
+//    @PostMapping("/delete")
+//    @AuthCheck(mustRole = UserConstant.TEACHER_ROLE)
+//    public BaseResponse<Boolean> deleteFile(String key) {
+//        checkNotCourseFile(key);
+//        boolean result = fileService.deleteFile(key);
+//        return ResultUtils.success(result);
+//    }
 
-    private void checkNotCourseFile(String key) {
-        if (key != null && key.startsWith(FileUploadEnum.COURSE.getValue() + "/")) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "课程文件请使用课程文件接口");
-        }
-    }
+//    private void checkNotCourseFile(String key) {
+//        if (key != null && key.startsWith(FileUploadEnum.COURSE.getValue() + "/")) {
+//            throw new BusinessException(ErrorCode.PARAMS_ERROR, "课程文件请使用课程文件接口");
+//        }
+//    }
 }

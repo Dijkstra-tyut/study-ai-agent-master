@@ -80,10 +80,9 @@ public class CourseController {
     }
 
     @PostMapping("/file/upload")
-    @AuthCheck(mustRole = UserConstant.TEACHER_ROLE)
-    public BaseResponse<CourseFileVO> uploadCourseFile(Long courseId, @RequestPart("file") MultipartFile multipartFile, HttpServletRequest request) {
+    @AuthCheck(mustRole = UserConstant.TEACHER_ROLE) public BaseResponse<CourseFileVO> uploadCourseFile(Long courseId, @RequestPart("file") MultipartFile multipartFile, HttpServletRequest request, Boolean needChapterAnalysis) {
         User loginUser = userService.getLoginUser(request);
-        CourseFile courseFile = courseService.uploadCourseFile(courseId, multipartFile, loginUser);
+        CourseFile courseFile = courseService.uploadCourseFile(courseId, multipartFile, loginUser, needChapterAnalysis);
         return ResultUtils.success(getCourseFileVO(courseFile));
     }
 

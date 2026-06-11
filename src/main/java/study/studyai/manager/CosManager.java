@@ -55,6 +55,7 @@ public class CosManager {
         getCosClient().deleteObject(cosClientConfig.getBucket(), key);
     }
 
+
     private COSClient getCosClient() {
         if (cosClient == null) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "COS配置未完成");

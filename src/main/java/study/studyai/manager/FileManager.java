@@ -30,7 +30,6 @@ public class FileManager {
         if (isDocumentFile(fileUploadEnum) && !DOCUMENT_SUFFIX_LIST.contains(suffix)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "文件格式错误");
         }
-        // TODO 接入大模型后，在这里校验上传文件内容是否符合课程或知识库主题。
     }
 
     public File transferToTempFile(MultipartFile multipartFile) {
