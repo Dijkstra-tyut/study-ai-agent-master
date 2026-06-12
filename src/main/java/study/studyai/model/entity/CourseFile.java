@@ -26,6 +26,10 @@ public class CourseFile {
 
     private String file_url;
 
+    private String markdown_key;
+
+    private String markdown_url;
+
     private String file_type;
 
     private Long file_size;
@@ -80,6 +84,22 @@ public class CourseFile {
 
     public void setFile_url(String file_url) {
         this.file_url = file_url;
+    }
+
+    public String getMarkdown_key() {
+        return markdown_key;
+    }
+
+    public void setMarkdown_key(String markdown_key) {
+        this.markdown_key = markdown_key;
+    }
+
+    public String getMarkdown_url() {
+        return markdown_url;
+    }
+
+    public void setMarkdown_url(String markdown_url) {
+        this.markdown_url = markdown_url;
     }
 
     public String getFile_type() {

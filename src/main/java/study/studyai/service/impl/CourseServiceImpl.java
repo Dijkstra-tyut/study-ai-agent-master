@@ -9,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 import study.studyai.common.ErrorCode;
 import study.studyai.exception.BusinessException;
 import study.studyai.manager.FileManager;
+import study.studyai.mapper.ChapterMapper;
 import study.studyai.mapper.CourseFileMapper;
 import study.studyai.mapper.CourseMapper;
 import study.studyai.model.dto.course.CourseAddRequest;
@@ -16,6 +17,7 @@ import study.studyai.model.dto.course.CourseFileQueryRequest;
 import study.studyai.model.dto.course.CourseFileUpdateRequest;
 import study.studyai.model.dto.course.CourseQueryRequest;
 import study.studyai.model.dto.course.CourseUpdateRequest;
+import study.studyai.model.entity.Chapter;
 import study.studyai.model.entity.Course;
 import study.studyai.model.entity.CourseFile;
 import study.studyai.model.entity.User;
@@ -24,8 +26,13 @@ import study.studyai.model.enums.UserRoleEnum;
 import study.studyai.model.vo.FileUploadVO;
 import study.studyai.service.CourseService;
 import study.studyai.service.FileService;
+import study.studyai.studyaiagent.course.CourseFileAiResult;
+import study.studyai.studyaiagent.course.CourseFileAiService;
+import study.studyai.studyaiagent.course.CourseMarkdownFile;
+import study.studyai.studyaiagent.course.CourseMarkdownFileService;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 @Service
 public class CourseServiceImpl implements CourseService {
@@ -37,10 +44,19 @@ public class CourseServiceImpl implements CourseService {
     private CourseFileMapper courseFileMapper;
 
     @Resource
+    private ChapterMapper chapterMapper;
+
+    @Resource
     private FileService fileService;
 
     @Resource
     private FileManager fileManager;
+
+    @Resource
+    private CourseFileAiService courseFileAiService;
+
+    @Resource
+    private CourseMarkdownFileService courseMarkdownFileService;
 
     @Override
     public Long addCourse(CourseAddRequest courseAddRequest, User loginUser) {
@@ -70,6 +86,7 @@ public class CourseServiceImpl implements CourseService {
         queryWrapper.eq("course_id", course.getCourse_id());
         for (CourseFile courseFile : courseFileMapper.selectList(queryWrapper)) {
             fileService.deleteFile(courseFile.getFile_key());
+            deleteMarkdownFile(courseFile);
         }
         courseFileMapper.delete(queryWrapper);
         return courseMapper.deleteById(courseId) > 0;
@@ -112,27 +129,32 @@ public class CourseServiceImpl implements CourseService {
     public CourseFile uploadCourseFile(Long courseId, MultipartFile multipartFile, User loginUser, Boolean needChapterAnalysis) {
         Course course = getCourseAndCheckOwner(courseId, loginUser);
         fileManager.validFile(multipartFile, FileUploadEnum.COURSE);
-        // TODO 在这里接入大模型检查! multipartFile 还在内存中
-        //validateCourseFileContent(multipartFile);
-        FileUploadVO fileUploadVO = fileService.uploadFile(multipartFile, FileUploadEnum.COURSE);
+        CourseFileAiResult courseFileAiResult = courseFileAiService.validateAndAnalyzeCourseFile(course, multipartFile, needChapterAnalysis);
+        CourseMarkdownFile courseMarkdownFile = courseMarkdownFileService.uploadMarkdown(courseFileAiResult.getMarkdown(), multipartFile.getOriginalFilename());
+        FileUploadVO fileUploadVO = null;
         try {
+            fileUploadVO = fileService.uploadFile(multipartFile, FileUploadEnum.COURSE);
             CourseFile courseFile = new CourseFile();
             courseFile.setCourse_id(course.getCourse_id());
             courseFile.setTeacher_id(course.getTeacher_id());
             courseFile.setFile_name(fileUploadVO.getFileName());
             courseFile.setFile_key(fileUploadVO.getFileKey());
             courseFile.setFile_url(fileUploadVO.getFileUrl());
+            courseFile.setMarkdown_key(courseMarkdownFile.getFileKey());
+            courseFile.setMarkdown_url(courseMarkdownFile.getFileUrl());
             courseFile.setFile_type(fileUploadVO.getFileType());
             courseFile.setFile_size(fileUploadVO.getFileSize());
             int result = courseFileMapper.insert(courseFile);
             if (result <= 0) {
                 throw new BusinessException(ErrorCode.OPERATION_ERROR);
             }
-            //TODO 这里上传完成 我需要得到用户是否选择了章节解析，如果选择了章节解析，我需要在这里调用大模型解析文件章节并写入章节表
-            //章节解析失败 不会删除文件，会显示文件上传成功 但是章节解析失败
+            saveChapterNameList(course.getCourse_id(), courseFileAiResult.getChapterNameList());
             return courseFile;
         } catch (Exception e) {
-            fileService.deleteFile(fileUploadVO.getFileKey());
+            if (fileUploadVO != null) {
+                fileService.deleteFile(fileUploadVO.getFileKey());
+            }
+            fileService.deleteFile(courseMarkdownFile.getFileKey());
             throw e;
         }
     }
@@ -142,6 +164,7 @@ public class CourseServiceImpl implements CourseService {
     public boolean deleteCourseFile(Long id, User loginUser) {
         CourseFile courseFile = getCourseFileAndCheckOwner(id, loginUser);
         fileService.deleteFile(courseFile.getFile_key());
+        deleteMarkdownFile(courseFile);
         return courseFileMapper.deleteById(id) > 0;
     }
 
@@ -207,6 +230,28 @@ public class CourseServiceImpl implements CourseService {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
         }
         return courseFile;
+    }
+
+    private void saveChapterNameList(Long courseId, List<String> chapterNameList) {
+        if (chapterNameList == null || chapterNameList.isEmpty()) {
+            return;
+        }
+        for (String chapterName : chapterNameList) {
+            if (StrUtil.isBlank(chapterName)) {
+                continue;
+            }
+            Chapter chapter = new Chapter();
+            chapter.setCourse_id(courseId);
+            chapter.setChapter_name(chapterName);
+            chapterMapper.insert(chapter);
+        }
+    }
+
+    private void deleteMarkdownFile(CourseFile courseFile) {
+        if (courseFile == null || StrUtil.isBlank(courseFile.getMarkdown_key())) {
+            return;
+        }
+        fileService.deleteFile(courseFile.getMarkdown_key());
     }
 
     private boolean isAdmin(User user) {
