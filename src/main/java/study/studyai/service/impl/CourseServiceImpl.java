@@ -26,7 +26,6 @@ import study.studyai.model.enums.UserRoleEnum;
 import study.studyai.model.vo.FileUploadVO;
 import study.studyai.service.CourseService;
 import study.studyai.service.FileService;
-import study.studyai.studyaiagent.course.CourseFileAiResult;
 import study.studyai.studyaiagent.course.CourseFileAiService;
 import study.studyai.studyaiagent.course.CourseMarkdownFile;
 import study.studyai.studyaiagent.course.CourseMarkdownFileService;
@@ -129,8 +128,9 @@ public class CourseServiceImpl implements CourseService {
     public CourseFile uploadCourseFile(Long courseId, MultipartFile multipartFile, User loginUser, Boolean needChapterAnalysis) {
         Course course = getCourseAndCheckOwner(courseId, loginUser);
         fileManager.validFile(multipartFile, FileUploadEnum.COURSE);
-        CourseFileAiResult courseFileAiResult = courseFileAiService.validateAndAnalyzeCourseFile(course, multipartFile, needChapterAnalysis);
-        CourseMarkdownFile courseMarkdownFile = courseMarkdownFileService.uploadMarkdown(courseFileAiResult.getMarkdown(), multipartFile.getOriginalFilename());
+        String markdown = courseFileAiService.convertToMarkdown(multipartFile);
+        courseFileAiService.validateCourseFile(course, markdown);
+        CourseMarkdownFile courseMarkdownFile = courseMarkdownFileService.uploadMarkdown(markdown, multipartFile.getOriginalFilename());
         FileUploadVO fileUploadVO = null;
         try {
             fileUploadVO = fileService.uploadFile(multipartFile, FileUploadEnum.COURSE);
@@ -148,7 +148,10 @@ public class CourseServiceImpl implements CourseService {
             if (result <= 0) {
                 throw new BusinessException(ErrorCode.OPERATION_ERROR);
             }
-            saveChapterNameList(course.getCourse_id(), courseFileAiResult.getChapterNameList());
+            if (Boolean.TRUE.equals(needChapterAnalysis)) {
+                List<String> chapterNameList = courseFileAiService.analyzeChapterNameList(course, markdown);
+                saveChapterNameList(course.getCourse_id(), chapterNameList);
+            }
             return courseFile;
         } catch (Exception e) {
             if (fileUploadVO != null) {

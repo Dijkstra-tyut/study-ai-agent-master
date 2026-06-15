@@ -1,4 +1,4 @@
-package study.studyai.ai.service;
+package study.studyai.studyaiagent.core;
 
 public interface AiChatService {
 

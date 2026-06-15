@@ -1,4 +1,4 @@
-package study.studyai.ai.service.impl;
+package study.studyai.studyaiagent.core.impl;
 
 import cn.hutool.core.util.StrUtil;
 import org.apache.tika.metadata.Metadata;
@@ -7,9 +7,9 @@ import org.apache.tika.parser.ParseContext;
 import org.apache.tika.sax.BodyContentHandler;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import study.studyai.ai.service.DocumentMarkdownService;
 import study.studyai.common.ErrorCode;
 import study.studyai.exception.BusinessException;
+import study.studyai.studyaiagent.core.DocumentMarkdownService;
 
 import java.io.InputStream;
 

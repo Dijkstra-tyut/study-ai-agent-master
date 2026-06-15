@@ -3,7 +3,13 @@ package study.studyai.studyaiagent.course;
 import org.springframework.web.multipart.MultipartFile;
 import study.studyai.model.entity.Course;
 
+import java.util.List;
+
 public interface CourseFileAiService {
 
-    CourseFileAiResult validateAndAnalyzeCourseFile(Course course, MultipartFile multipartFile, Boolean needChapterAnalysis);
+    String convertToMarkdown(MultipartFile multipartFile);
+
+    void validateCourseFile(Course course, String markdown);
+
+    List<String> analyzeChapterNameList(Course course, String markdown);
 }

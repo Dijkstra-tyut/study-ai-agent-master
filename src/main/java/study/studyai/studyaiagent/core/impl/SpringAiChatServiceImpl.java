@@ -1,9 +1,9 @@
-package study.studyai.ai.service.impl;
+package study.studyai.studyaiagent.core.impl;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.stereotype.Service;
-import study.studyai.ai.service.AiChatService;
+import study.studyai.studyaiagent.core.AiChatService;
 
 @Service
 public class SpringAiChatServiceImpl implements AiChatService {
