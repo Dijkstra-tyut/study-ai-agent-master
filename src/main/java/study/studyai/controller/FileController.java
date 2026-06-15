@@ -12,9 +12,9 @@ import study.studyai.model.enums.FileUploadEnum;
 import study.studyai.model.vo.FileUploadVO;
 import study.studyai.service.FileService;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("/file")

@@ -6,8 +6,8 @@ import study.studyai.common.BaseResponse;
 import study.studyai.model.enums.FileUploadEnum;
 import study.studyai.model.vo.FileUploadVO;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public interface FileService {
 

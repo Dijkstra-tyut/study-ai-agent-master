@@ -31,7 +31,7 @@ import study.studyai.studyaiagent.course.CourseFileAiService;
 import study.studyai.studyaiagent.course.CourseMarkdownFile;
 import study.studyai.studyaiagent.course.CourseMarkdownFileService;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.List;
 
 @Service

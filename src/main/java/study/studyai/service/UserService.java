@@ -10,7 +10,7 @@ import study.studyai.model.dto.user.UserUpdateRequest;
 import study.studyai.model.vo.LoginUserVO;
 import study.studyai.model.vo.UserProfileVO;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
 * @author Lenovo

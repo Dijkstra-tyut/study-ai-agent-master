@@ -21,8 +21,8 @@ import study.studyai.model.vo.LoginUserVO;
 import study.studyai.model.vo.UserProfileVO;
 import study.studyai.service.UserService;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/user")

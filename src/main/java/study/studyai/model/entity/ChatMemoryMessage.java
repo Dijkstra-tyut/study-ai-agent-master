@@ -20,6 +20,8 @@ public class ChatMemoryMessage {
 
     private String content;
 
+    private Integer message_order;
+
     private Date create_time;
 
     public Long getId() {
@@ -60,6 +62,14 @@ public class ChatMemoryMessage {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public Integer getMessage_order() {
+        return message_order;
+    }
+
+    public void setMessage_order(Integer message_order) {
+        this.message_order = message_order;
     }
 
     public Date getCreate_time() {

@@ -11,7 +11,7 @@ import study.studyai.manager.FileManager;
 import study.studyai.studyaiagent.course.CourseMarkdownFile;
 import study.studyai.studyaiagent.course.CourseMarkdownFileService;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;

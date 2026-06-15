@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS `chat_memory_message` (
                                        `conversation_id` VARCHAR(100) NOT NULL COMMENT '对话ID',
                                        `role` VARCHAR(50) NOT NULL COMMENT '消息角色',
                                        `content` MEDIUMTEXT NOT NULL COMMENT '消息内容',
+                                       `message_order` INT DEFAULT 0 COMMENT '消息顺序',
                                        `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
                                        PRIMARY KEY (`id`),
                                        KEY `idx_user_conversation` (`user_id`, `conversation_id`)

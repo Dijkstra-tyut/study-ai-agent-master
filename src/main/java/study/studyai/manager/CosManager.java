@@ -12,7 +12,7 @@ import study.studyai.common.ErrorCode;
 import study.studyai.config.CosClientConfig;
 import study.studyai.exception.BusinessException;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.io.File;
 
 @Component

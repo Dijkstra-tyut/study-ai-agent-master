@@ -6,7 +6,7 @@ import study.studyai.model.entity.Course;
 import study.studyai.studyaiagent.course.CourseFileAiResult;
 import study.studyai.studyaiagent.course.CourseFileAiService;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 @Service
 public class ValidateCourseApp {

@@ -14,8 +14,8 @@ import study.studyai.model.entity.User;
 import study.studyai.model.enums.UserRoleEnum;
 import study.studyai.service.UserService;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 
 @Aspect
 @Component
