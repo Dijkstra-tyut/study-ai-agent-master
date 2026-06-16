@@ -1,4 +1,4 @@
-package study.studyai.studyaiagent.course;
+package study.studyai.studyaiagent.course.model;
 
 public class CourseMarkdownFile {
 

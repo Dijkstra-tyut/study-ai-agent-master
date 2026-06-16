@@ -1,4 +1,6 @@
-package study.studyai.studyaiagent.course;
+package study.studyai.studyaiagent.course.service;
+
+import study.studyai.studyaiagent.course.model.CourseMarkdownFile;
 
 public interface CourseMarkdownFileService {
 

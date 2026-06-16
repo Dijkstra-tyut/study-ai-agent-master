@@ -1,4 +1,4 @@
-package study.studyai.studyaiagent.course;
+package study.studyai.studyaiagent.course.service;
 
 import org.springframework.web.multipart.MultipartFile;
 import study.studyai.model.entity.Course;

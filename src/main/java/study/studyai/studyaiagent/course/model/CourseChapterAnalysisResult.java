@@ -1,4 +1,4 @@
-package study.studyai.studyaiagent.course;
+package study.studyai.studyaiagent.course.model;
 
 import java.util.ArrayList;
 import java.util.List;

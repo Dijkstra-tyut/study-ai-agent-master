@@ -1,4 +1,4 @@
-package study.studyai.studyaiagent.course.impl;
+package study.studyai.studyaiagent.course.service.impl;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
@@ -8,8 +8,8 @@ import study.studyai.config.CosClientConfig;
 import study.studyai.exception.BusinessException;
 import study.studyai.manager.CosManager;
 import study.studyai.manager.FileManager;
-import study.studyai.studyaiagent.course.CourseMarkdownFile;
-import study.studyai.studyaiagent.course.CourseMarkdownFileService;
+import study.studyai.studyaiagent.course.model.CourseMarkdownFile;
+import study.studyai.studyaiagent.course.service.CourseMarkdownFileService;
 
 import jakarta.annotation.Resource;
 import java.io.File;

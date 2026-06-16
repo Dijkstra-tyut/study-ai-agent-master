@@ -26,9 +26,10 @@ import study.studyai.model.enums.UserRoleEnum;
 import study.studyai.model.vo.FileUploadVO;
 import study.studyai.service.CourseService;
 import study.studyai.service.FileService;
-import study.studyai.studyaiagent.course.CourseFileAiService;
-import study.studyai.studyaiagent.course.CourseMarkdownFile;
-import study.studyai.studyaiagent.course.CourseMarkdownFileService;
+import study.studyai.studyaiagent.app.ValidateCourseApp;
+import study.studyai.studyaiagent.course.service.CourseFileAiService;
+import study.studyai.studyaiagent.course.model.CourseMarkdownFile;
+import study.studyai.studyaiagent.course.service.CourseMarkdownFileService;
 
 import jakarta.annotation.Resource;
 import java.util.List;
@@ -50,6 +51,9 @@ public class CourseServiceImpl implements CourseService {
 
     @Resource
     private FileManager fileManager;
+
+    @Resource
+    private ValidateCourseApp validateCourseApp;
 
     @Resource
     private CourseFileAiService courseFileAiService;

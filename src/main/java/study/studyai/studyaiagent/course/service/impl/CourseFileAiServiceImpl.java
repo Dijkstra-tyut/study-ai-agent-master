@@ -1,4 +1,4 @@
-package study.studyai.studyaiagent.course.impl;
+package study.studyai.studyaiagent.course.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
@@ -9,9 +9,9 @@ import study.studyai.exception.BusinessException;
 import study.studyai.model.entity.Course;
 import study.studyai.studyaiagent.core.AiChatService;
 import study.studyai.studyaiagent.core.DocumentMarkdownService;
-import study.studyai.studyaiagent.course.CourseChapterAnalysisResult;
-import study.studyai.studyaiagent.course.CourseFileAiService;
-import study.studyai.studyaiagent.course.CourseFileCheckResult;
+import study.studyai.studyaiagent.course.model.CourseChapterAnalysisResult;
+import study.studyai.studyaiagent.course.service.CourseFileAiService;
+import study.studyai.studyaiagent.course.model.CourseFileCheckResult;
 
 import jakarta.annotation.Resource;
 import java.util.ArrayList;
