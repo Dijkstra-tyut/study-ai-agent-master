@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0d9488" />
+    <title>教师工作台 | Study AI</title>
+    <link rel="stylesheet" href="./assets/teacher.css" />
+    <script src="./assets/lucide.min.js" defer></script>
+    <script src="./assets/teacher.js" defer></script>
+  </head>
+  <body>
+    <div class="teacher-shell">
+      <aside class="sidebar">
+        <a class="brand" href="#overview" aria-label="Study AI 教师工作台首页">
+          <span class="brand-mark">S</span>
+          <span class="brand-copy"><strong>Study AI</strong><small>教师工作台</small></span>
+        </a>
+        <nav class="main-nav" aria-label="教师端导航">
+          <a class="nav-item is-active" href="#overview"><i data-lucide="layout-dashboard" aria-hidden="true"></i><span>工作概览</span></a>
+          <a class="nav-item" href="#courses"><i data-lucide="book-open" aria-hidden="true"></i><span>课程管理</span></a>
+          <a class="nav-item" href="#materials"><i data-lucide="folder-up" aria-hidden="true"></i><span>资料管理</span></a>
+        </nav>
+        <div class="sidebar-note"><i data-lucide="file-check-2" aria-hidden="true"></i><div><strong>资料入库流程</strong><span>AI 校验后进入课程知识库</span></div></div>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar" id="overview">
+          <div><p class="eyebrow">TEACHER / COURSE KNOWLEDGE BASE</p><h1>课程资料管理</h1><p class="topbar-copy">组织课程范围，上传并维护学生学习路径所使用的知识资料。</p></div>
+          <div class="topbar-actions">
+            <button class="user-chip" id="profile-button" type="button" aria-label="编辑教师资料">
+              <span class="avatar" id="user-avatar"><i data-lucide="user-round" aria-hidden="true"></i></span>
+              <span><strong id="user-name">加载中</strong><small>教师</small></span>
+            </button>
+            <button class="icon-button" id="logout-button" type="button" aria-label="退出登录" title="退出登录"><i data-lucide="log-out" aria-hidden="true"></i></button>
+          </div>
+        </header>
+
+        <div class="global-alert" id="global-alert" role="alert" hidden><i data-lucide="circle-alert" aria-hidden="true"></i><span id="global-alert-text"></span><button id="alert-close" type="button" aria-label="关闭提示"><i data-lucide="x" aria-hidden="true"></i></button></div>
+
+        <section class="metric-grid" aria-label="课程资料统计">
+          <article class="metric-card metric-primary"><span class="metric-icon"><i data-lucide="library-big" aria-hidden="true"></i></span><div><small>我的课程</small><strong id="metric-courses">—</strong><p>当前教师负责</p></div></article>
+          <article class="metric-card"><span class="metric-marker file-marker"></span><div><small>全部资料</small><strong id="metric-files">—</strong><p>已进入资料库</p></div></article>
+          <article class="metric-card"><span class="metric-marker selected-marker"></span><div><small>当前课程资料</small><strong id="metric-selected-files">—</strong><p id="metric-selected-label">尚未选择课程</p></div></article>
+          <article class="metric-card"><span class="metric-icon warm-icon"><i data-lucide="clock-3" aria-hidden="true"></i></span><div><small>最近更新</small><strong class="date-metric" id="metric-updated">—</strong><p>课程或资料变更</p></div></article>
+        </section>
+
+        <section class="workspace" id="courses">
+          <aside class="course-panel" aria-labelledby="course-list-title">
+            <div class="section-heading"><div><p class="eyebrow">MY COURSES</p><h2 id="course-list-title">课程</h2></div><button class="icon-button" id="add-course-button" type="button" aria-label="新增课程" title="新增课程"><i data-lucide="plus" aria-hidden="true"></i></button></div>
+            <form class="compact-search" id="course-search-form"><i data-lucide="search" aria-hidden="true"></i><input id="course-search" type="search" placeholder="搜索课程" autocomplete="off" /><button type="submit" aria-label="搜索课程"><i data-lucide="arrow-right" aria-hidden="true"></i></button></form>
+            <div class="course-list" id="course-list" aria-live="polite"></div>
+          </aside>
+
+          <section class="material-panel" id="materials" aria-labelledby="current-course-name">
+            <div class="empty-course" id="empty-course"><i data-lucide="book-dashed" aria-hidden="true"></i><strong>请选择一门课程</strong><p>从左侧课程列表选择后，可上传和管理资料。</p></div>
+
+            <div id="course-workspace" hidden>
+              <header class="course-header">
+                <div><p class="eyebrow">CURRENT COURSE</p><h2 id="current-course-name">—</h2><p id="current-course-description">—</p></div>
+                <div class="header-actions"><button class="icon-button" id="edit-course-button" type="button" aria-label="编辑课程" title="编辑课程"><i data-lucide="pencil" aria-hidden="true"></i></button><button class="icon-button danger-icon-button" id="delete-course-button" type="button" aria-label="删除课程" title="删除课程"><i data-lucide="trash-2" aria-hidden="true"></i></button></div>
+              </header>
+
+              <section class="upload-section" aria-labelledby="upload-title">
+                <div class="pipeline" aria-label="资料处理流程"><span><i data-lucide="file-up" aria-hidden="true"></i>选择文件</span><i data-lucide="arrow-right" aria-hidden="true"></i><span><i data-lucide="shield-check" aria-hidden="true"></i>AI 校验</span><i data-lucide="arrow-right" aria-hidden="true"></i><span><i data-lucide="database" aria-hidden="true"></i>课程知识库</span></div>
+                <div class="upload-grid">
+                  <label class="upload-zone" id="upload-zone" for="course-file-input">
+                    <input id="course-file-input" type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.md" />
+                    <i data-lucide="cloud-upload" aria-hidden="true"></i><strong id="upload-title">选择或拖入课程资料</strong><span id="selected-file-name">PDF、Word、PPT、Excel、TXT、Markdown</span>
+                  </label>
+                  <div class="upload-settings">
+                    <label class="toggle-row"><input id="chapter-analysis" type="checkbox" checked /><span class="toggle"><span></span></span><span><strong>解析章节结构</strong><small>上传后提取章节名称</small></span></label>
+                    <button class="primary-button" id="upload-button" type="button" disabled><i data-lucide="upload-cloud" aria-hidden="true"></i>上传并校验</button>
+                    <p id="upload-status" role="status" aria-live="polite"></p>
+                  </div>
+                </div>
+              </section>
+
+              <section class="library-section" aria-labelledby="library-title">
+                <div class="section-heading"><div><p class="eyebrow">COURSE LIBRARY</p><h2 id="library-title">课程资料库</h2></div><button class="icon-button" id="refresh-files-button" type="button" aria-label="刷新资料" title="刷新资料"><i data-lucide="refresh-cw" aria-hidden="true"></i></button></div>
+                <form class="file-filter" id="file-search-form"><label><i data-lucide="search" aria-hidden="true"></i><input id="file-search" type="search" placeholder="搜索资料名称" autocomplete="off" /></label><button class="secondary-button" type="submit"><i data-lucide="list-filter" aria-hidden="true"></i>筛选</button></form>
+                <div class="file-list" id="file-list" aria-live="polite"></div>
+                <footer class="pagination"><p id="file-page-summary">第 1 页</p><div><button class="icon-button" id="previous-file-page" type="button" aria-label="上一页"><i data-lucide="chevron-left" aria-hidden="true"></i></button><span id="file-page-indicator">1 / 1</span><button class="icon-button" id="next-file-page" type="button" aria-label="下一页"><i data-lucide="chevron-right" aria-hidden="true"></i></button></div></footer>
+              </section>
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <dialog class="modal" id="course-dialog"><form class="modal-card" id="course-form" method="dialog" novalidate><header class="modal-header"><div><p class="eyebrow" id="course-dialog-code">NEW COURSE</p><h2 id="course-dialog-title">新增课程</h2></div><button class="icon-button modal-close" type="button" aria-label="关闭"><i data-lucide="x" aria-hidden="true"></i></button></header><input id="course-id" type="hidden" /><div class="form-grid"><label class="field"><span>课程名称</span><input id="course-name-input" type="text" required /></label><label class="field"><span>课程介绍</span><textarea id="course-description-input" rows="5"></textarea></label></div><p class="form-error" id="course-form-error" role="alert"></p><footer class="modal-actions"><button class="secondary-button cancel-button" type="button">取消</button><button class="primary-button" id="save-course-button" type="submit"><i data-lucide="save" aria-hidden="true"></i>保存课程</button></footer></form></dialog>
+
+    <dialog class="modal compact-modal" id="rename-dialog"><form class="modal-card" id="rename-form" method="dialog"><header class="modal-header"><div><p class="eyebrow">RENAME MATERIAL</p><h2>重命名资料</h2></div><button class="icon-button modal-close" type="button" aria-label="关闭"><i data-lucide="x" aria-hidden="true"></i></button></header><input id="rename-file-id" type="hidden" /><label class="field modal-field"><span>资料名称</span><input id="rename-file-name" type="text" required /></label><p class="form-error" id="rename-form-error" role="alert"></p><footer class="modal-actions"><button class="secondary-button cancel-button" type="button">取消</button><button class="primary-button" id="save-file-name-button" type="submit">保存名称</button></footer></form></dialog>
+
+    <dialog class="modal" id="profile-dialog"><form class="modal-card" id="profile-form" method="dialog"><header class="modal-header"><div><p class="eyebrow">TEACHER PROFILE</p><h2>教师资料</h2></div><button class="icon-button modal-close" type="button" aria-label="关闭"><i data-lucide="x" aria-hidden="true"></i></button></header><div class="form-grid two-columns"><label class="field"><span>教师姓名</span><input id="teacher-name-input" type="text" /></label><label class="field"><span>研究方向</span><input id="research-area-input" type="text" /></label><label class="field field-wide"><span>个人简介</span><textarea id="teacher-intro-input" rows="5"></textarea></label></div><p class="form-error" id="profile-form-error" role="alert"></p><footer class="modal-actions"><button class="secondary-button cancel-button" type="button">取消</button><button class="primary-button" id="save-profile-button" type="submit"><i data-lucide="save" aria-hidden="true"></i>保存资料</button></footer></form></dialog>
+
+    <dialog class="modal compact-modal" id="delete-dialog"><form class="modal-card" id="delete-form" method="dialog"><span class="delete-symbol"><i data-lucide="trash-2" aria-hidden="true"></i></span><h2 id="delete-title">确认删除</h2><p id="delete-description"></p><p class="form-error" id="delete-form-error" role="alert"></p><footer class="modal-actions"><button class="secondary-button cancel-button" type="button">取消</button><button class="danger-button" id="confirm-delete-button" type="submit">确认删除</button></footer></form></dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden><i data-lucide="circle-check" aria-hidden="true"></i><span id="toast-text"></span></div>
+  </body>
+</html>

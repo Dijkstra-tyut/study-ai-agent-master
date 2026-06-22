@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0d9488" />
+    <title>学生工作台 | Study AI</title>
+    <link rel="stylesheet" href="./assets/student.css" />
+    <script src="./assets/lucide.min.js" defer></script>
+    <script src="./assets/student.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="学生端导航">
+        <a class="brand" href="./student.html" aria-label="Study AI 学生工作台">
+          <span class="brand-mark">S</span>
+          <span class="brand-copy">
+            <strong>Study AI</strong>
+            <small>学生工作台</small>
+          </span>
+        </a>
+
+        <nav class="main-nav" aria-label="页面导航">
+          <a class="nav-item is-active" href="#overview">
+            <i data-lucide="layout-dashboard" aria-hidden="true"></i>
+            <span>学习概览</span>
+          </a>
+          <a class="nav-item" href="#resources">
+            <i data-lucide="library-big" aria-hidden="true"></i>
+            <span>课程资料</span>
+          </a>
+          <a class="nav-item" href="#practice">
+            <i data-lucide="notebook-tabs" aria-hidden="true"></i>
+            <span>智能练习</span>
+          </a>
+          <a class="nav-item" href="#wrong-questions">
+            <i data-lucide="refresh-ccw-dot" aria-hidden="true"></i>
+            <span>错题回流</span>
+          </a>
+        </nav>
+
+        <section class="sidebar-note">
+          <i data-lucide="sparkles" aria-hidden="true"></i>
+          <div>
+            <strong>反馈持续回流</strong>
+            <p>问答、练习和错题会成为下一次学习画像分析的依据。</p>
+          </div>
+        </section>
+      </aside>
+
+      <main class="workspace" id="overview">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">STUDENT LEARNING LOOP</p>
+            <h1>今天，从一个清晰的问题开始</h1>
+          </div>
+          <div class="top-actions">
+            <form class="course-search" id="course-search-form" role="search">
+              <label class="sr-only" for="course-search-input">搜索课程</label>
+              <i data-lucide="search" aria-hidden="true"></i>
+              <input id="course-search-input" type="search" placeholder="搜索课程" />
+              <button class="sr-only" type="submit">搜索</button>
+            </form>
+            <div class="user-chip" id="user-chip">
+              <span class="avatar" id="user-avatar"><i data-lucide="user-round" aria-hidden="true"></i></span>
+              <span>
+                <strong id="user-name">加载中</strong>
+                <small>学生</small>
+              </span>
+            </div>
+            <button class="icon-button" id="logout-button" type="button" aria-label="退出登录" title="退出登录">
+              <i data-lucide="log-out" aria-hidden="true"></i>
+            </button>
+          </div>
+        </header>
+
+        <div class="global-alert" id="global-alert" role="alert" aria-live="polite" hidden>
+          <i data-lucide="circle-alert" aria-hidden="true"></i>
+          <span id="global-alert-text"></span>
+          <button id="alert-close" type="button" aria-label="关闭提示"><i data-lucide="x" aria-hidden="true"></i></button>
+        </div>
+
+        <section class="course-hero panel" aria-labelledby="current-course-name">
+          <div class="course-hero-copy">
+            <span class="status-pill"><i data-lucide="route" aria-hidden="true"></i>当前学习课程</span>
+            <h2 id="current-course-name">请选择一门课程</h2>
+            <p id="current-course-description">课程加载完成后，从左侧列表选择课程开始学习。</p>
+            <div class="hero-actions">
+              <button class="primary-button" id="hero-ask-button" type="button" disabled>
+                <i data-lucide="message-square-text" aria-hidden="true"></i>
+                向 AI 提问
+              </button>
+              <button class="secondary-button" id="hero-practice-button" type="button" disabled>
+                <i data-lucide="wand-sparkles" aria-hidden="true"></i>
+                生成练习
+              </button>
+            </div>
+          </div>
+
+          <div class="loop-board" aria-label="AI 学习反馈闭环">
+            <div class="loop-node loop-select is-complete"><span>01</span><strong>选课</strong><small>确定学习范围</small></div>
+            <i class="loop-arrow loop-arrow-top" data-lucide="arrow-right" aria-hidden="true"></i>
+            <div class="loop-node loop-practice is-current"><span>02</span><strong>问答与练习</strong><small>产生学习信号</small></div>
+            <i class="loop-arrow loop-arrow-right" data-lucide="arrow-down" aria-hidden="true"></i>
+            <div class="loop-node loop-wrong"><span>03</span><strong>错题回流</strong><small>记录卡点与反馈</small></div>
+            <i class="loop-arrow loop-arrow-bottom" data-lucide="arrow-left" aria-hidden="true"></i>
+            <div class="loop-node loop-profile"><span>04</span><strong>画像更新</strong><small>调整下一轮路径</small></div>
+            <i class="loop-arrow loop-arrow-left" data-lucide="arrow-up" aria-hidden="true"></i>
+            <div class="loop-core">
+              <i data-lucide="refresh-ccw" aria-hidden="true"></i>
+              <strong>反馈循环</strong>
+              <small>进入下一轮</small>
+            </div>
+          </div>
+        </section>
+
+        <section class="metric-grid" aria-label="学习数据概览">
+          <article class="metric-card">
+            <span>可学课程</span>
+            <strong id="course-count">—</strong>
+            <small>来自课程列表接口</small>
+          </article>
+          <article class="metric-card">
+            <span>当前资料</span>
+            <strong id="resource-count">—</strong>
+            <small>已选择课程的资料</small>
+          </article>
+          <article class="metric-card">
+            <span>错题回流</span>
+            <strong id="wrong-count">—</strong>
+            <small>当前课程累计错题</small>
+          </article>
+          <article class="metric-card accent-card">
+            <span>知识水平</span>
+            <strong id="knowledge-level">—</strong>
+            <small>最近一次学习画像</small>
+          </article>
+        </section>
+
+        <section class="dashboard-grid">
+          <section class="panel course-panel" aria-labelledby="course-list-title">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">COURSES</p>
+                <h2 id="course-list-title">我的课程</h2>
+              </div>
+              <button class="icon-button" id="refresh-courses" type="button" aria-label="刷新课程" title="刷新课程">
+                <i data-lucide="refresh-cw" aria-hidden="true"></i>
+              </button>
+            </div>
+            <div class="course-list" id="course-list" aria-live="polite">
+              <div class="loading-state"><span class="spinner"></span>正在加载课程</div>
+            </div>
+          </section>
+
+          <section class="panel profile-panel" aria-labelledby="profile-title">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">LEARNING PROFILE</p>
+                <h2 id="profile-title">学习画像</h2>
+              </div>
+              <button class="secondary-button compact-button" id="analyze-profile-button" type="button">
+                <i data-lucide="scan-search" aria-hidden="true"></i>
+                重新分析
+              </button>
+            </div>
+            <div id="profile-content" class="profile-content" aria-live="polite">
+              <div class="loading-state"><span class="spinner"></span>正在读取学习画像</div>
+            </div>
+          </section>
+        </section>
+
+        <section class="panel" id="resources" aria-labelledby="resource-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">COURSE LIBRARY</p>
+              <h2 id="resource-title">课程资料</h2>
+            </div>
+            <span class="section-context" id="resource-context">请先选择课程</span>
+          </div>
+          <div class="resource-list" id="resource-list" aria-live="polite">
+            <div class="empty-state"><i data-lucide="folder-open" aria-hidden="true"></i><strong>等待选择课程</strong><p>选择课程后，这里会显示可下载资料。</p></div>
+          </div>
+        </section>
+
+        <section class="panel" id="practice" aria-labelledby="practice-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">ADAPTIVE PRACTICE</p>
+              <h2 id="practice-title">智能练习</h2>
+            </div>
+            <div class="practice-controls">
+              <label for="question-count">题目数量</label>
+              <select id="question-count">
+                <option value="3">3 题</option>
+                <option value="5">5 题</option>
+                <option value="10">10 题</option>
+              </select>
+              <button class="primary-button compact-button" id="generate-questions-button" type="button" disabled>
+                <i data-lucide="wand-sparkles" aria-hidden="true"></i>
+                生成练习
+              </button>
+            </div>
+          </div>
+          <div class="question-list" id="question-list" aria-live="polite">
+            <div class="empty-state"><i data-lucide="notebook-pen" aria-hidden="true"></i><strong>还没有练习题</strong><p>选择课程后，让 AI 根据课程内容生成练习。</p></div>
+          </div>
+        </section>
+
+        <section class="panel" id="wrong-questions" aria-labelledby="wrong-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">FEEDBACK RETURN</p>
+              <h2 id="wrong-title">错题回流</h2>
+            </div>
+            <span class="section-context">错误与 AI 反馈将参与画像分析</span>
+          </div>
+          <div class="wrong-list" id="wrong-list" aria-live="polite">
+            <div class="empty-state"><i data-lucide="refresh-ccw-dot" aria-hidden="true"></i><strong>等待选择课程</strong><p>选择课程后，这里会显示错题与反馈。</p></div>
+          </div>
+        </section>
+      </main>
+
+      <aside class="assistant-panel" aria-label="AI 学习助手">
+        <div class="assistant-heading">
+          <span class="assistant-icon"><i data-lucide="bot" aria-hidden="true"></i></span>
+          <div>
+            <p class="eyebrow">AI TUTOR</p>
+            <h2>课程知识助手</h2>
+          </div>
+          <span class="online-dot" title="在线"></span>
+        </div>
+
+        <div class="assistant-course" id="assistant-course">
+          <span>当前范围</span>
+          <strong>尚未选择课程</strong>
+        </div>
+
+        <div class="chat-list" id="chat-list" aria-live="polite">
+          <div class="chat-message ai-message">选择一门课程后，你可以针对课程资料向我提问。</div>
+        </div>
+
+        <form class="ask-form" id="ask-form">
+          <label class="sr-only" for="ask-input">输入课程问题</label>
+          <textarea id="ask-input" rows="3" placeholder="输入你想理解的问题…" disabled></textarea>
+          <button class="primary-button" id="ask-submit" type="submit" disabled>
+            <span>发送问题</span>
+            <i data-lucide="send-horizontal" aria-hidden="true"></i>
+          </button>
+        </form>
+      </aside>
+    </div>
+  </body>
+</html>

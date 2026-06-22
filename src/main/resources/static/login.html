@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0d9488" />
+    <title>登录 | Study AI</title>
+    <link rel="stylesheet" href="./assets/login.css" />
+    <script src="./assets/lucide.min.js" defer></script>
+    <script src="./assets/login.js" defer></script>
+  </head>
+  <body>
+    <main class="login-page">
+      <section class="visual-panel" aria-labelledby="platform-title">
+        <img
+          class="visual-image"
+          src="./assets/login-learning.jpg"
+          alt="学生在电脑前进行在线学习"
+        />
+        <div class="visual-shade" aria-hidden="true"></div>
+
+        <a class="brand brand-on-image" href="./login.html" aria-label="Study AI 登录首页">
+          <span class="brand-mark">S</span>
+          <span>
+            <strong>Study AI</strong>
+            <small>AI 学习平台</small>
+          </span>
+        </a>
+
+        <div class="visual-copy">
+          <p class="eyebrow eyebrow-light">PERSONAL LEARNING LOOP</p>
+          <h1 id="platform-title">让每一次学习，都成为下一次推荐的依据</h1>
+          <p>系统根据账号身份进入对应工作台。学生获得个性化学习路径，教师管理课程资料与 AI 审核流程。</p>
+        </div>
+
+        <div class="loop-preview" aria-label="AI 学习闭环">
+          <div class="loop-step is-complete">
+            <span>01</span>
+            <strong>诊断</strong>
+          </div>
+          <i data-lucide="chevron-right" aria-hidden="true"></i>
+          <div class="loop-step is-current">
+            <span>02</span>
+            <strong>学习</strong>
+          </div>
+          <i data-lucide="chevron-right" aria-hidden="true"></i>
+          <div class="loop-step">
+            <span>03</span>
+            <strong>反馈回流</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="form-panel" aria-labelledby="login-title">
+        <div class="mobile-brand">
+          <span class="brand-mark">S</span>
+          <span>
+            <strong>Study AI</strong>
+            <small>AI 学习平台</small>
+          </span>
+        </div>
+
+        <div class="login-card">
+          <header class="form-heading">
+            <span class="status-pill">
+              <i data-lucide="shield-check" aria-hidden="true"></i>
+              安全登录
+            </span>
+            <h2 id="login-title">欢迎回来</h2>
+            <p>使用你的平台账号登录，系统会自动识别学生、教师或管理员身份。</p>
+          </header>
+
+          <div class="alert" id="form-alert" role="alert" aria-live="polite" hidden>
+            <i data-lucide="circle-alert" aria-hidden="true"></i>
+            <span id="form-alert-text"></span>
+          </div>
+
+          <form id="login-form" novalidate>
+            <div class="field">
+              <label for="username">账号</label>
+              <div class="input-shell">
+                <i data-lucide="user-round" aria-hidden="true"></i>
+                <input
+                  id="username"
+                  name="username"
+                  type="text"
+                  autocomplete="username"
+                  minlength="4"
+                  placeholder="请输入账号"
+                  aria-describedby="username-error"
+                  required
+                />
+              </div>
+              <p class="field-error" id="username-error"></p>
+            </div>
+
+            <div class="field">
+              <div class="label-row">
+                <label for="password">密码</label>
+              </div>
+              <div class="input-shell">
+                <i data-lucide="lock-keyhole" aria-hidden="true"></i>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autocomplete="current-password"
+                  minlength="8"
+                  placeholder="请输入密码"
+                  aria-describedby="password-error"
+                  required
+                />
+                <button class="password-toggle" id="password-toggle" type="button" aria-label="显示密码" aria-pressed="false">
+                  <i data-lucide="eye" aria-hidden="true"></i>
+                </button>
+              </div>
+              <p class="field-error" id="password-error"></p>
+            </div>
+
+            <label class="remember-row">
+              <input id="remember-username" type="checkbox" />
+              <span>记住账号</span>
+            </label>
+
+            <button class="submit-button" id="submit-button" type="submit">
+              <span class="button-label">登录</span>
+              <i data-lucide="arrow-right" aria-hidden="true"></i>
+              <span class="spinner" aria-hidden="true"></span>
+            </button>
+          </form>
+
+          <section class="success-panel" id="success-panel" aria-live="polite" hidden>
+            <span class="success-icon"><i data-lucide="check" aria-hidden="true"></i></span>
+            <p class="eyebrow">SIGNED IN</p>
+            <h3>登录成功</h3>
+            <p><strong id="success-username"></strong>，已识别为 <span id="success-role"></span>。</p>
+            <p class="success-note">对应工作台页面接入后，将从这里自动进入。</p>
+          </section>
+
+          <footer class="form-footer">
+            <i data-lucide="info" aria-hidden="true"></i>
+            <span>账号由学校或平台管理员统一创建。如无法登录，请联系管理员。</span>
+          </footer>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

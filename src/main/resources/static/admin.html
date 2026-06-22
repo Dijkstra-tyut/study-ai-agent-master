@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0d9488" />
+    <title>管理员工作台 | Study AI</title>
+    <link rel="stylesheet" href="./assets/admin.css" />
+    <script src="./assets/lucide.min.js" defer></script>
+    <script src="./assets/admin.js" defer></script>
+  </head>
+  <body>
+    <div class="admin-shell">
+      <aside class="sidebar">
+        <a class="brand" href="#overview" aria-label="Study AI 管理员工作台首页">
+          <span class="brand-mark">S</span>
+          <span class="brand-copy"><strong>Study AI</strong><small>管理控制台</small></span>
+        </a>
+
+        <nav class="main-nav" aria-label="管理员导航">
+          <a class="nav-item is-active" href="#overview"><i data-lucide="layout-dashboard" aria-hidden="true"></i><span>工作概览</span></a>
+          <a class="nav-item" href="#accounts"><i data-lucide="users-round" aria-hidden="true"></i><span>账号管理</span></a>
+        </nav>
+
+        <div class="permission-note">
+          <i data-lucide="shield-check" aria-hidden="true"></i>
+          <div><strong>管理员权限</strong><span>账号与身份资料维护</span></div>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar" id="overview">
+          <div>
+            <p class="eyebrow">ADMINISTRATION / USER DIRECTORY</p>
+            <h1>平台账号管理</h1>
+            <p class="topbar-copy">维护学生、教师与管理员账号，确保每个身份进入正确的工作台。</p>
+          </div>
+          <div class="topbar-actions">
+            <div class="user-chip" id="user-chip">
+              <span class="avatar" id="user-avatar"><i data-lucide="user-round" aria-hidden="true"></i></span>
+              <span><strong id="user-name">加载中</strong><small>管理员</small></span>
+            </div>
+            <button class="icon-button" id="logout-button" type="button" aria-label="退出登录" title="退出登录">
+              <i data-lucide="log-out" aria-hidden="true"></i>
+            </button>
+          </div>
+        </header>
+
+        <div class="global-alert" id="global-alert" role="alert" hidden>
+          <i data-lucide="circle-alert" aria-hidden="true"></i>
+          <span id="global-alert-text"></span>
+          <button id="alert-close" type="button" aria-label="关闭提示"><i data-lucide="x" aria-hidden="true"></i></button>
+        </div>
+
+        <section class="metric-grid" aria-label="账号统计">
+          <article class="metric-card metric-total"><span class="metric-icon"><i data-lucide="users" aria-hidden="true"></i></span><div><small>全部账号</small><strong id="metric-total">—</strong><p>平台账号总数</p></div></article>
+          <article class="metric-card"><span class="role-dot student-dot"></span><div><small>学生</small><strong id="metric-student">—</strong><p>学习端账号</p></div></article>
+          <article class="metric-card"><span class="role-dot teacher-dot"></span><div><small>教师</small><strong id="metric-teacher">—</strong><p>资料管理账号</p></div></article>
+          <article class="metric-card"><span class="role-dot admin-dot"></span><div><small>管理员</small><strong id="metric-admin">—</strong><p>控制台账号</p></div></article>
+        </section>
+
+        <section class="directory-panel" id="accounts" aria-labelledby="accounts-title">
+          <div class="section-heading">
+            <div><p class="eyebrow">ACCOUNT DIRECTORY</p><h2 id="accounts-title">账号目录</h2></div>
+            <button class="primary-button" id="add-user-button" type="button"><i data-lucide="user-plus" aria-hidden="true"></i>新增账号</button>
+          </div>
+
+          <form class="filter-bar" id="filter-form">
+            <label class="search-field" for="user-search">
+              <i data-lucide="search" aria-hidden="true"></i>
+              <input id="user-search" type="search" placeholder="搜索账号名称" autocomplete="off" />
+            </label>
+            <label class="select-field" for="role-filter">
+              <span>身份</span>
+              <select id="role-filter">
+                <option value="">全部身份</option>
+                <option value="student">学生</option>
+                <option value="teacher">教师</option>
+                <option value="admin">管理员</option>
+                <option value="user">普通用户</option>
+              </select>
+            </label>
+            <button class="secondary-button" type="submit"><i data-lucide="list-filter" aria-hidden="true"></i>筛选</button>
+            <button class="icon-button" id="refresh-button" type="button" aria-label="刷新账号列表" title="刷新账号列表"><i data-lucide="refresh-cw" aria-hidden="true"></i></button>
+          </form>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>账号</th><th>身份</th><th>账号 ID</th><th>创建时间</th><th class="actions-column">操作</th></tr></thead>
+              <tbody id="user-table-body"></tbody>
+            </table>
+            <div class="table-state" id="table-state" aria-live="polite"></div>
+          </div>
+
+          <footer class="pagination">
+            <p id="page-summary">第 1 页</p>
+            <div>
+              <button class="icon-button" id="previous-page" type="button" aria-label="上一页" title="上一页"><i data-lucide="chevron-left" aria-hidden="true"></i></button>
+              <span id="page-indicator">1 / 1</span>
+              <button class="icon-button" id="next-page" type="button" aria-label="下一页" title="下一页"><i data-lucide="chevron-right" aria-hidden="true"></i></button>
+            </div>
+          </footer>
+        </section>
+      </main>
+    </div>
+
+    <dialog class="modal" id="account-dialog">
+      <form class="modal-card" id="account-form" method="dialog" novalidate>
+        <header class="modal-header"><div><p class="eyebrow" id="account-dialog-code">NEW ACCOUNT</p><h2 id="account-dialog-title">新增账号</h2></div><button class="icon-button modal-close" type="button" aria-label="关闭"><i data-lucide="x" aria-hidden="true"></i></button></header>
+        <input id="account-id" type="hidden" />
+        <div class="form-grid">
+          <label class="field"><span>账号名称</span><input id="account-username" type="text" minlength="4" autocomplete="off" required /><small>至少 4 个字符</small></label>
+          <label class="field"><span>登录密码</span><input id="account-password" type="password" minlength="8" autocomplete="new-password" required /><small id="password-hint">至少 8 个字符</small></label>
+          <label class="field"><span>身份</span><select id="account-role" required><option value="student">学生</option><option value="teacher">教师</option><option value="admin">管理员</option><option value="user">普通用户</option></select></label>
+          <label class="field"><span>头像地址</span><input id="account-avatar" type="url" placeholder="https://..." autocomplete="off" /></label>
+        </div>
+        <p class="form-error" id="account-form-error" role="alert"></p>
+        <footer class="modal-actions"><button class="secondary-button cancel-button" type="button">取消</button><button class="primary-button" id="save-account-button" type="submit"><i data-lucide="save" aria-hidden="true"></i>保存账号</button></footer>
+      </form>
+    </dialog>
+
+    <dialog class="modal" id="profile-dialog">
+      <form class="modal-card" id="profile-form" method="dialog">
+        <header class="modal-header"><div><p class="eyebrow">IDENTITY PROFILE</p><h2 id="profile-dialog-title">身份资料</h2></div><button class="icon-button modal-close" type="button" aria-label="关闭"><i data-lucide="x" aria-hidden="true"></i></button></header>
+        <input id="profile-user-id" type="hidden" />
+        <input id="profile-role" type="hidden" />
+        <div class="profile-context"><span class="avatar avatar-large" id="profile-avatar"><i data-lucide="user-round" aria-hidden="true"></i></span><div><strong id="profile-username">—</strong><span class="role-badge" id="profile-role-badge">—</span></div></div>
+        <div class="form-grid profile-fields" id="student-profile-fields" hidden>
+          <label class="field"><span>专业</span><input id="profile-major" type="text" /></label>
+          <label class="field"><span>年级</span><input id="profile-grade" type="text" /></label>
+          <label class="field field-wide"><span>学习目标</span><textarea id="profile-learning-target" rows="3"></textarea></label>
+          <label class="field"><span>兴趣方向</span><input id="profile-interest" type="text" /></label>
+          <label class="field"><span>知识基础</span><input id="profile-knowledge" type="text" /></label>
+        </div>
+        <div class="form-grid profile-fields" id="teacher-profile-fields" hidden>
+          <label class="field"><span>教师姓名</span><input id="profile-teacher-name" type="text" /></label>
+          <label class="field"><span>研究方向</span><input id="profile-research-area" type="text" /></label>
+          <label class="field field-wide"><span>个人简介</span><textarea id="profile-intro" rows="4"></textarea></label>
+        </div>
+        <div class="profile-empty" id="profile-empty" hidden><i data-lucide="shield" aria-hidden="true"></i><strong>该身份没有扩展资料</strong><span>管理员和普通用户仅维护基础账号信息。</span></div>
+        <p class="form-error" id="profile-form-error" role="alert"></p>
+        <footer class="modal-actions"><button class="secondary-button cancel-button" type="button">取消</button><button class="primary-button" id="save-profile-button" type="submit"><i data-lucide="save" aria-hidden="true"></i>保存资料</button></footer>
+      </form>
+    </dialog>
+
+    <dialog class="modal compact-modal" id="delete-dialog">
+      <form class="modal-card" id="delete-form" method="dialog">
+        <span class="danger-icon"><i data-lucide="trash-2" aria-hidden="true"></i></span>
+        <h2>删除账号</h2>
+        <p>确认删除账号 <strong id="delete-username"></strong>？相关学生或教师资料会一并删除。</p>
+        <input id="delete-user-id" type="hidden" />
+        <p class="form-error" id="delete-form-error" role="alert"></p>
+        <footer class="modal-actions"><button class="secondary-button cancel-button" type="button">取消</button><button class="danger-button" id="confirm-delete-button" type="submit">确认删除</button></footer>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden><i data-lucide="circle-check" aria-hidden="true"></i><span id="toast-text"></span></div>
+  </body>
+</html>
