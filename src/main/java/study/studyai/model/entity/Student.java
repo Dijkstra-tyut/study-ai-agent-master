@@ -1,6 +1,7 @@
 package study.studyai.model.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -34,26 +35,31 @@ public class Student {
     /**
      * 学习目标
      */
+    @TableField("learning_target")
     private String learning_target;
 
     /**
      * 兴趣方向
      */
+    @TableField("interest_direction")
     private String interest_direction;
 
     /**
      * 知识基础画像
      */
+    @TableField("knowledge_level")
     private String knowledge_level;
 
     /**
      * 创建时间
      */
+    @TableField("create_time")
     private Date create_time;
 
     /**
      * 更新时间
      */
+    @TableField("update_time")
     private Date update_time;
 
     public Long getStudent_id() {

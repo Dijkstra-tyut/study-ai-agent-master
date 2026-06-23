@@ -1,6 +1,7 @@
 package study.studyai.model.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
@@ -16,20 +17,27 @@ public class LearningAnswerRecord {
     @TableId(type = IdType.AUTO)
     private Long id;
 
+    @TableField("question_id")
     private Long question_id;
 
+    @TableField("user_id")
     private Long user_id;
 
+    @TableField("course_id")
     private Long course_id;
 
+    @TableField("user_answer")
     private String user_answer;
 
     private Integer correct;
 
+    @TableField("ai_feedback")
     private String ai_feedback;
 
+    @TableField("create_time")
     private Date create_time;
 
+    @TableField("update_time")
     private Date update_time;
 
     public Long getId() {

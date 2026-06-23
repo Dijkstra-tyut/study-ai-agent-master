@@ -1,6 +1,7 @@
 package study.studyai.model.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
@@ -16,26 +17,37 @@ public class CourseFile {
     @TableId(type = IdType.AUTO)
     private Long id;
 
+    @TableField("course_id")
     private Long course_id;
 
+    @TableField("teacher_id")
     private Long teacher_id;
 
+    @TableField("file_name")
     private String file_name;
 
+    @TableField("file_key")
     private String file_key;
 
+    @TableField("file_url")
     private String file_url;
 
+    @TableField("markdown_key")
     private String markdown_key;
 
+    @TableField("markdown_url")
     private String markdown_url;
 
+    @TableField("file_type")
     private String file_type;
 
+    @TableField("file_size")
     private Long file_size;
 
+    @TableField("create_time")
     private Date create_time;
 
+    @TableField("update_time")
     private Date update_time;
 
     public Long getId() {

@@ -1,6 +1,7 @@
 package study.studyai.model.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -24,11 +25,13 @@ public class Teacher {
     /**
      * 姓名
      */
+    @TableField("teacher_name")
     private String teacher_name;
 
     /**
      * 研究方向
      */
+    @TableField("research_area")
     private String research_area;
 
     /**
@@ -39,11 +42,13 @@ public class Teacher {
     /**
      * 创建时间
      */
+    @TableField("create_time")
     private Date create_time;
 
     /**
      * 更新时间
      */
+    @TableField("update_time")
     private Date update_time;
 
     public Long getTeacher_id() {

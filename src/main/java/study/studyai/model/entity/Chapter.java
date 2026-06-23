@@ -1,17 +1,20 @@
 package study.studyai.model.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
 @TableName(value = "chapter")
 public class Chapter {
 
-    @TableId(type = IdType.AUTO)
+    @TableId(value = "chapter_id", type = IdType.AUTO)
     private Long chapter_id;
 
+    @TableField("course_id")
     private Long course_id;
 
+    @TableField("chapter_name")
     private String chapter_name;
 
     public Long getChapter_id() {

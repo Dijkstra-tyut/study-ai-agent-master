@@ -1,6 +1,7 @@
 package study.studyai.model.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
@@ -16,28 +17,38 @@ public class LearningProfile {
     @TableId(type = IdType.AUTO)
     private Long id;
 
+    @TableField("user_id")
     private Long user_id;
 
+    @TableField("knowledge_level")
     private Integer knowledge_level;
 
+    @TableField("learning_style")
     private String learning_style;
 
     private String interest;
 
     private String weakness;
 
+    @TableField("error_preference")
     private String error_preference;
 
+    @TableField("learning_speed")
     private String learning_speed;
 
+    @TableField("learning_route")
     private String learning_route;
 
+    @TableField("behavior_analysis")
     private String behavior_analysis;
 
+    @TableField("profile_json")
     private String profile_json;
 
+    @TableField("create_time")
     private Date create_time;
 
+    @TableField("update_time")
     private Date update_time;
 
     public Long getId() {

@@ -2,101 +2,79 @@ package study.studyai.studyaiagent.learning.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
-import org.springframework.ai.chat.memory.ChatMemory;
-import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import study.studyai.common.ErrorCode;
 import study.studyai.exception.BusinessException;
 import study.studyai.model.entity.Course;
 import study.studyai.model.entity.LearningQuestion;
+import study.studyai.studyaiagent.core.AiChatService;
 import study.studyai.studyaiagent.course.service.CourseKnowledgeService;
 import study.studyai.studyaiagent.learning.model.LearningAnswerCheckResult;
 import study.studyai.studyaiagent.learning.model.LearningProfileResult;
 import study.studyai.studyaiagent.learning.model.LearningQuestionGenerateResult;
 import study.studyai.studyaiagent.learning.model.LearningQuestionResult;
 import study.studyai.studyaiagent.learning.service.LearningAiService;
-import study.studyai.studyaiagent.memory.StudyConversationId;
 
 import java.util.List;
 
 @Service
 public class LearningAiServiceImpl implements LearningAiService {
 
-    private static final String ASK_SYSTEM_PROMPT = "你是学习智能体的课程知识点答疑助手。必须优先依据给定课程资料回答，资料没有提到时要明确说明不能从资料中确认，再给出谨慎建议。";
+    private static final String ASK_SYSTEM_PROMPT = "You are a course knowledge assistant. Answer primarily from the provided course material. "
+            + "If the material does not contain the answer, say that it cannot be confirmed from the material, then give a cautious suggestion.";
 
-    private static final String QUESTION_SYSTEM_PROMPT = "你是学习智能体的出题助手。请严格根据课程资料出题，题目要能考察学生对资料核心知识点的理解。";
+    private static final String QUESTION_SYSTEM_PROMPT = "You are a quiz generation assistant. Generate questions strictly from the provided course material. "
+            + "The questions should test understanding of the core concepts in the material.";
 
-    private static final String CHECK_SYSTEM_PROMPT = "你是学习智能体的判题助手。请根据标准答案和解析判断学生答案是否正确，并给出简短反馈。";
+    private static final String CHECK_SYSTEM_PROMPT = "You are an answer grading assistant. Judge whether the student answer is correct based on the standard answer and analysis, and give brief feedback.";
 
-    private static final String PROFILE_SYSTEM_PROMPT = "你是学习智能体的学习画像分析助手。请根据用户历史问答和错题记录，生成动态画像、学习路线和学习行为分析。";
+    private static final String PROFILE_SYSTEM_PROMPT = "You are a learning profile analysis assistant. Based on historical questions, answers, and wrong-answer records, generate a dynamic learning profile and study route.";
 
-    private final ChatClient chatClient;
+    private final AiChatService aiChatService;
 
     private final CourseKnowledgeService courseKnowledgeService;
 
-    public LearningAiServiceImpl(ChatModel dashscopeChatModel,
-                                 @Qualifier("studyDatabaseChatMemory") ChatMemory chatMemory,
-                                 CourseKnowledgeService courseKnowledgeService) {
-        this.chatClient = ChatClient.builder(dashscopeChatModel)
-                .defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build())
-                .build();
+    public LearningAiServiceImpl(AiChatService aiChatService, CourseKnowledgeService courseKnowledgeService) {
+        this.aiChatService = aiChatService;
         this.courseKnowledgeService = courseKnowledgeService;
     }
 
     @Override
     public String askCourseQuestion(Long userId, String conversationId, Course course, String question) {
         String context = courseKnowledgeService.searchCourseContext(course, question);
-        String chatId = StudyConversationId.build(userId, conversationId);
-        String userPrompt = "课程名称：" + course.getCourse_name()
-                + "\n课程资料片段：\n" + context
-                + "\n学生问题：\n" + question;
-        return chatClient.prompt()
-                .system(ASK_SYSTEM_PROMPT)
-                .user(userPrompt)
-                .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, chatId))
-                .call()
-                .content();
+        String userPrompt = "Course name: " + course.getCourse_name()
+                + "\nConversation id: " + StrUtil.blankToDefault(conversationId, "none")
+                + "\nCourse material excerpts:\n" + context
+                + "\nStudent question:\n" + question;
+        return aiChatService.call(ASK_SYSTEM_PROMPT, userPrompt);
     }
 
     @Override
     public List<LearningQuestionResult> generateQuestionList(Long userId, String conversationId, Course course, Integer questionCount) {
-        String context = courseKnowledgeService.searchCourseContext(course, "课程重点 出题 考察");
-        String chatId = StudyConversationId.build(userId, conversationId);
-        String userPrompt = "课程名称：" + course.getCourse_name()
-                + "\n出题数量：" + questionCount
-                + "\n课程资料片段：\n" + context
-                + "\n请返回结构化对象：questionList 为题目列表，每个题目包含 question、answer、analysis、questionType、difficulty。";
-        LearningQuestionGenerateResult result = chatClient.prompt()
-                .system(QUESTION_SYSTEM_PROMPT)
-                .user(userPrompt)
-                .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, chatId))
-                .call()
-                .entity(LearningQuestionGenerateResult.class);
+        String context = courseKnowledgeService.searchCourseContext(course, "course key points quiz assessment");
+        String userPrompt = "Course name: " + course.getCourse_name()
+                + "\nConversation id: " + StrUtil.blankToDefault(conversationId, "none")
+                + "\nQuestion count: " + questionCount
+                + "\nCourse material excerpts:\n" + context
+                + "\nReturn a JSON object with field questionList. Each item must contain question, answer, analysis, questionType, difficulty.";
+        LearningQuestionGenerateResult result = aiChatService.callEntity(QUESTION_SYSTEM_PROMPT, userPrompt, LearningQuestionGenerateResult.class);
         if (result == null || CollUtil.isEmpty(result.getQuestionList())) {
-            throw new BusinessException(ErrorCode.OPERATION_ERROR, "生成题目失败");
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "Question generation failed");
         }
         return result.getQuestionList();
     }
 
     @Override
     public LearningAnswerCheckResult checkAnswer(Long userId, String conversationId, LearningQuestion learningQuestion, String userAnswer) {
-        String chatId = StudyConversationId.build(userId, conversationId);
-        String userPrompt = "题目：\n" + learningQuestion.getQuestion()
-                + "\n标准答案：\n" + learningQuestion.getAnswer()
-                + "\n解析：\n" + StrUtil.blankToDefault(learningQuestion.getAnalysis(), "无")
-                + "\n学生答案：\n" + userAnswer
-                + "\n请返回结构化对象：correct 表示是否正确，feedback 表示对学生的反馈。";
-        LearningAnswerCheckResult result = chatClient.prompt()
-                .system(CHECK_SYSTEM_PROMPT)
-                .user(userPrompt)
-                .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, chatId))
-                .call()
-                .entity(LearningAnswerCheckResult.class);
+        String userPrompt = "Conversation id: " + StrUtil.blankToDefault(conversationId, "none")
+                + "\nQuestion:\n" + learningQuestion.getQuestion()
+                + "\nStandard answer:\n" + learningQuestion.getAnswer()
+                + "\nAnalysis:\n" + StrUtil.blankToDefault(learningQuestion.getAnalysis(), "none")
+                + "\nStudent answer:\n" + userAnswer
+                + "\nReturn a JSON object with fields correct(boolean), feedback(string).";
+        LearningAnswerCheckResult result = aiChatService.callEntity(CHECK_SYSTEM_PROMPT, userPrompt, LearningAnswerCheckResult.class);
         if (result == null || result.getCorrect() == null) {
-            throw new BusinessException(ErrorCode.OPERATION_ERROR, "判题失败");
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "Answer grading failed");
         }
         return result;
     }
@@ -104,18 +82,14 @@ public class LearningAiServiceImpl implements LearningAiService {
     @Override
     public LearningProfileResult analyzeLearningProfile(String learningHistory) {
         if (StrUtil.isBlank(learningHistory)) {
-            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "暂无可分析的学习记录");
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "No learning records available for analysis");
         }
-        String userPrompt = "用户学习记录：\n" + learningHistory
-                + "\n请返回结构化对象，字段包含 knowledgeLevel、learningStyle、interest、weakness、errorPreference、learningSpeed、learningRoute、behaviorAnalysis。"
-                + "\nknowledgeLevel 为 0 到 100 的整数，weakness 为字符串列表。";
-        LearningProfileResult result = chatClient.prompt()
-                .system(PROFILE_SYSTEM_PROMPT)
-                .user(userPrompt)
-                .call()
-                .entity(LearningProfileResult.class);
+        String userPrompt = "User learning records:\n" + learningHistory
+                + "\nReturn a JSON object with fields knowledgeLevel(integer 0-100), learningStyle, interest, weakness(array of strings), "
+                + "errorPreference, learningSpeed, learningRoute, behaviorAnalysis.";
+        LearningProfileResult result = aiChatService.callEntity(PROFILE_SYSTEM_PROMPT, userPrompt, LearningProfileResult.class);
         if (result == null) {
-            throw new BusinessException(ErrorCode.OPERATION_ERROR, "学习画像分析失败");
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "Learning profile analysis failed");
         }
         return result;
     }

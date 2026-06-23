@@ -1,6 +1,7 @@
 package study.studyai.model.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
@@ -16,32 +17,37 @@ public class Course {
     /**
      * 课程ID
      */
-    @TableId(type = IdType.AUTO)
+    @TableId(value = "course_id", type = IdType.AUTO)
     private Long course_id;
 
     /**
      * 课程名称
      */
+    @TableField("course_name")
     private String course_name;
 
     /**
      * 负责人
      */
+    @TableField("teacher_id")
     private Long teacher_id;
 
     /**
      * 课程介绍
      */
+    @TableField("description")
     private String description;
 
     /**
      * 创建时间
      */
+    @TableField("create_time")
     private Date create_time;
 
     /**
      * 更新时间
      */
+    @TableField("update_time")
     private Date update_time;
 
     public Long getCourse_id() {

@@ -2,6 +2,7 @@ package study.studyai.studyaiagent.course.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import study.studyai.common.ErrorCode;
@@ -10,10 +11,9 @@ import study.studyai.model.entity.Course;
 import study.studyai.studyaiagent.core.AiChatService;
 import study.studyai.studyaiagent.core.DocumentMarkdownService;
 import study.studyai.studyaiagent.course.model.CourseChapterAnalysisResult;
-import study.studyai.studyaiagent.course.service.CourseFileAiService;
 import study.studyai.studyaiagent.course.model.CourseFileCheckResult;
+import study.studyai.studyaiagent.course.service.CourseFileAiService;
 
-import jakarta.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,7 +45,7 @@ public class CourseFileAiServiceImpl implements CourseFileAiService {
         CourseFileCheckResult checkResult = checkCourseFile(course, markdown);
         if (checkResult == null || !Boolean.TRUE.equals(checkResult.getPass())) {
             String reason = checkResult == null ? null : checkResult.getReason();
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, StrUtil.blankToDefault(reason, "课程文件与课程主题不匹配"));
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, StrUtil.blankToDefault(reason, "Course file does not match the course topic"));
         }
     }
 
@@ -57,31 +57,37 @@ public class CourseFileAiServiceImpl implements CourseFileAiService {
         CourseChapterAnalysisResult analysisResult = analyzeChapter(course, markdown);
         if (analysisResult == null || !Boolean.TRUE.equals(analysisResult.getHasDirectory())) {
             String reason = analysisResult == null ? null : analysisResult.getReason();
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, StrUtil.blankToDefault(reason, "文件没有目录，无法进行章节切分"));
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, StrUtil.blankToDefault(reason, "No reliable chapter outline found in the file"));
         }
         List<String> chapterNameList = normalizeChapterNameList(analysisResult.getChapterNameList());
         if (CollUtil.isEmpty(chapterNameList)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "文件没有目录，无法进行章节切分");
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "No reliable chapter outline found in the file");
         }
         return CollUtil.sub(chapterNameList, 0, Math.min(chapterNameList.size(), MAX_CHAPTER_SIZE));
     }
 
     private CourseFileCheckResult checkCourseFile(Course course, String markdown) {
-        String systemPrompt = "你是学习智能体系统的课程文件审核助手。只根据用户提供的文件开头内容判断该文件是否适合作为课程资料。"
-                + "请按结构化对象返回：pass 表示是否通过，reason 表示原因。不要进行章节切分。";
-        String userPrompt = "课程名称：" + course.getCourse_name()
-                + "\n课程介绍：" + StrUtil.blankToDefault(course.getDescription(), "无")
-                + "\n文件开头内容：\n" + limitContent(markdown, CHECK_CONTENT_LENGTH);
+        String systemPrompt = "You are a course material relevance checker. "
+                + "Judge only whether the extracted file text is related to the course name and description. "
+                + "Pass if the material is a textbook excerpt, chapter outline, lecture note, syllabus, or course reference related to the course. "
+                + "Do not reject a file merely because it is short, an excerpt, a sample, or lacks exercises/code examples. "
+                + "Reject only when the text is empty, unreadable, or clearly unrelated to the course. "
+                + "Return a JSON object with fields: pass(boolean), reason(string).";
+        String userPrompt = "Course name: " + course.getCourse_name()
+                + "\nCourse description: " + StrUtil.blankToDefault(course.getDescription(), "none")
+                + "\nExtracted file text:\n" + limitContent(markdown, CHECK_CONTENT_LENGTH);
         return aiChatService.callEntity(systemPrompt, userPrompt, CourseFileCheckResult.class);
     }
 
     private CourseChapterAnalysisResult analyzeChapter(Course course, String markdown) {
-        String systemPrompt = "你是学习智能体系统的课程章节解析助手。只根据用户提供的文件开头内容判断是否存在目录或明显大章节。"
-                + "如果没有目录或无法可靠切分，hasDirectory 返回 false，并说明原因。"
-                + "如果可以切分，hasDirectory 返回 true，chapterNameList 只返回大章节标题，不要提取过细小节。";
-        String userPrompt = "课程名称：" + course.getCourse_name()
-                + "\n课程介绍：" + StrUtil.blankToDefault(course.getDescription(), "无")
-                + "\n文件开头内容：\n" + limitContent(markdown, CHAPTER_CONTENT_LENGTH);
+        String systemPrompt = "You are a course chapter outline extractor. "
+                + "Use the extracted file text to decide whether it contains a table of contents, chapter headings, or obvious major sections. "
+                + "If major sections can be identified, return hasDirectory=true and chapterNameList with only major chapter titles. "
+                + "If no reliable sections exist, return hasDirectory=false and explain briefly. "
+                + "Return a JSON object with fields: hasDirectory(boolean), reason(string), chapterNameList(array of strings).";
+        String userPrompt = "Course name: " + course.getCourse_name()
+                + "\nCourse description: " + StrUtil.blankToDefault(course.getDescription(), "none")
+                + "\nExtracted file text:\n" + limitContent(markdown, CHAPTER_CONTENT_LENGTH);
         return aiChatService.callEntity(systemPrompt, userPrompt, CourseChapterAnalysisResult.class);
     }
 

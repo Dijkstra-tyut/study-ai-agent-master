@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import study.studyai.common.BaseResponse;
 import study.studyai.common.ErrorCode;
@@ -36,6 +37,12 @@ public class GlobalExceptionHandler {
     public BaseResponse<?> paramsExceptionHandler(Exception e) {
         log.error("ParamsException", e);
         return ResultUtils.error(ErrorCode.PARAMS_ERROR);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public BaseResponse<?> maxUploadSizeExceededExceptionHandler(MaxUploadSizeExceededException e) {
+        log.error("MaxUploadSizeExceededException", e);
+        return ResultUtils.error(ErrorCode.PARAMS_ERROR, "文件过大，最大支持 100MB");
     }
 
     @ExceptionHandler(RuntimeException.class)

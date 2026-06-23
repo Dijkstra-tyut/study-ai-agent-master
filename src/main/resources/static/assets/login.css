@@ -290,6 +290,33 @@ input:focus-visible {
   margin: 0;
 }
 
+.mode-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: -8px 0 22px;
+  padding: 6px;
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  background: #f8fffe;
+}
+
+.mode-switch button {
+  min-width: 0;
+  min-height: 40px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.mode-switch button.is-active {
+  background: var(--soft);
+  color: var(--primary-dark);
+  box-shadow: 3px 3px 0 rgba(19, 78, 74, 0.1);
+}
+
 #login-form {
   display: grid;
   gap: 18px;

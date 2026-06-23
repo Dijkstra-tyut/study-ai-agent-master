@@ -64,11 +64,16 @@
           <header class="form-heading">
             <span class="status-pill">
               <i data-lucide="shield-check" aria-hidden="true"></i>
-              安全登录
+              <span id="mode-pill-text">安全登录</span>
             </span>
             <h2 id="login-title">欢迎回来</h2>
-            <p>使用你的平台账号登录，系统会自动识别学生、教师或管理员身份。</p>
+            <p id="login-subtitle">使用你的平台账号登录，系统会自动识别学生、教师或管理员身份。</p>
           </header>
+
+          <div class="mode-switch" role="tablist" aria-label="账号操作">
+            <button class="is-active" id="login-mode-button" type="button" role="tab" aria-selected="true">登录</button>
+            <button id="register-mode-button" type="button" role="tab" aria-selected="false">创建账号</button>
+          </div>
 
           <div class="alert" id="form-alert" role="alert" aria-live="polite" hidden>
             <i data-lucide="circle-alert" aria-hidden="true"></i>
@@ -117,6 +122,25 @@
               <p class="field-error" id="password-error"></p>
             </div>
 
+            <div class="field" id="check-password-field" hidden>
+              <div class="label-row">
+                <label for="check-password">确认密码</label>
+              </div>
+              <div class="input-shell">
+                <i data-lucide="badge-check" aria-hidden="true"></i>
+                <input
+                  id="check-password"
+                  name="checkPassword"
+                  type="password"
+                  autocomplete="new-password"
+                  minlength="8"
+                  placeholder="请再次输入密码"
+                  aria-describedby="check-password-error"
+                />
+              </div>
+              <p class="field-error" id="check-password-error"></p>
+            </div>
+
             <label class="remember-row">
               <input id="remember-username" type="checkbox" />
               <span>记住账号</span>
@@ -139,7 +163,7 @@
 
           <footer class="form-footer">
             <i data-lucide="info" aria-hidden="true"></i>
-            <span>账号由学校或平台管理员统一创建。如无法登录，请联系管理员。</span>
+            <span id="form-footer-text">管理员可在控制台创建教师、学生和管理员账号；普通用户也可先自助创建基础账号。</span>
           </footer>
         </div>
       </section>

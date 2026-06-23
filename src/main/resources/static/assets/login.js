@@ -1,4 +1,5 @@
 const LOGIN_ENDPOINT = new URL("./user/login", document.baseURI).toString();
+const REGISTER_ENDPOINT = new URL("./user/register", document.baseURI).toString();
 const ROLE_LABELS = Object.freeze({
   student: "学生",
   teacher: "教师",
@@ -11,14 +12,19 @@ const ROLE_ROUTES = Object.freeze({
 });
 
 const form = document.querySelector("#login-form");
+const loginModeButton = document.querySelector("#login-mode-button");
+const registerModeButton = document.querySelector("#register-mode-button");
 const usernameInput = document.querySelector("#username");
 const passwordInput = document.querySelector("#password");
+const checkPasswordField = document.querySelector("#check-password-field");
+const checkPasswordInput = document.querySelector("#check-password");
 const rememberInput = document.querySelector("#remember-username");
 const passwordToggle = document.querySelector("#password-toggle");
 const submitButton = document.querySelector("#submit-button");
 const alertBox = document.querySelector("#form-alert");
 const alertText = document.querySelector("#form-alert-text");
 const successPanel = document.querySelector("#success-panel");
+let mode = "login";
 
 function initializeIcons() {
   if (window.lucide) {
@@ -45,10 +51,12 @@ function setFieldError(input, message) {
 function validateForm() {
   const username = usernameInput.value.trim();
   const password = passwordInput.value;
+  const checkPassword = checkPasswordInput.value;
   let valid = true;
 
   setFieldError(usernameInput, "");
   setFieldError(passwordInput, "");
+  setFieldError(checkPasswordInput, "");
 
   if (!username) {
     setFieldError(usernameInput, "请输入账号");
@@ -64,6 +72,19 @@ function validateForm() {
   } else if (password.length < 8) {
     setFieldError(passwordInput, "密码至少需要 8 个字符");
     valid = false;
+  }
+
+  if (mode === "register") {
+    if (!checkPassword) {
+      setFieldError(checkPasswordInput, "请再次输入密码");
+      valid = false;
+    } else if (checkPassword.length < 8) {
+      setFieldError(checkPasswordInput, "确认密码至少需要 8 个字符");
+      valid = false;
+    } else if (checkPassword !== password) {
+      setFieldError(checkPasswordInput, "两次输入的密码不一致");
+      valid = false;
+    }
   }
 
   return valid;
@@ -136,6 +157,56 @@ function completeLogin(user) {
   successPanel.hidden = false;
 }
 
+function setMode(nextMode) {
+  mode = nextMode;
+  const isRegister = mode === "register";
+  loginModeButton.classList.toggle("is-active", !isRegister);
+  registerModeButton.classList.toggle("is-active", isRegister);
+  loginModeButton.setAttribute("aria-selected", String(!isRegister));
+  registerModeButton.setAttribute("aria-selected", String(isRegister));
+  checkPasswordField.hidden = !isRegister;
+  checkPasswordInput.required = isRegister;
+  passwordInput.autocomplete = isRegister ? "new-password" : "current-password";
+  document.querySelector("#mode-pill-text").textContent = isRegister ? "创建账号" : "安全登录";
+  document.querySelector("#login-title").textContent = isRegister ? "创建新账号" : "欢迎回来";
+  document.querySelector("#login-subtitle").textContent = isRegister
+    ? "自助创建的账号默认为普通用户，管理员可在控制台调整为学生、教师或管理员。"
+    : "使用你的平台账号登录，系统会自动识别学生、教师或管理员身份。";
+  document.querySelector(".button-label").textContent = isRegister ? "创建并登录" : "登录";
+  document.querySelector("#form-footer-text").textContent = isRegister
+    ? "创建成功后将自动登录；如需进入教师或管理员工作台，请联系管理员调整身份。"
+    : "管理员可在控制台创建教师、学生和管理员账号；普通用户也可先自助创建基础账号。";
+  hideAlert();
+  setFieldError(usernameInput, "");
+  setFieldError(passwordInput, "");
+  setFieldError(checkPasswordInput, "");
+}
+
+async function postJson(endpoint, body) {
+  const response = await fetch(endpoint, {
+    method: "POST",
+    credentials: "same-origin",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  let payload;
+  try {
+    payload = await response.json();
+  } catch {
+    throw new Error("服务器返回了无法识别的响应");
+  }
+
+  if (!response.ok || payload.code !== 0) {
+    throw new Error(payload.message || "请求失败");
+  }
+
+  return payload.data;
+}
+
 async function submitLogin(event) {
   event.preventDefault();
   hideAlert();
@@ -149,31 +220,24 @@ async function submitLogin(event) {
   setLoading(true);
 
   try {
-    const response = await fetch(LOGIN_ENDPOINT, {
-      method: "POST",
-      credentials: "same-origin",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+    if (mode === "register") {
+      await postJson(REGISTER_ENDPOINT, {
         username: usernameInput.value.trim(),
         password: passwordInput.value,
-      }),
+        checkPassword: checkPasswordInput.value,
+      });
+    }
+
+    const user = await postJson(LOGIN_ENDPOINT, {
+      username: usernameInput.value.trim(),
+      password: passwordInput.value,
     });
 
-    let payload;
-    try {
-      payload = await response.json();
-    } catch {
-      throw new Error("服务器返回了无法识别的响应");
+    if (!user) {
+      throw new Error("账号或密码错误");
     }
 
-    if (!response.ok || payload.code !== 0 || !payload.data) {
-      throw new Error(payload.message || "账号或密码错误");
-    }
-
-    completeLogin(payload.data);
+    completeLogin(user);
   } catch (error) {
     const message = error instanceof TypeError ? "无法连接服务器，请确认后端服务已启动" : error.message;
     showAlert(message || "登录失败，请稍后重试");
@@ -202,7 +266,10 @@ function restoreRememberedUsername() {
 
 usernameInput.addEventListener("input", () => setFieldError(usernameInput, ""));
 passwordInput.addEventListener("input", () => setFieldError(passwordInput, ""));
+checkPasswordInput.addEventListener("input", () => setFieldError(checkPasswordInput, ""));
 passwordToggle.addEventListener("click", togglePasswordVisibility);
+loginModeButton.addEventListener("click", () => setMode("login"));
+registerModeButton.addEventListener("click", () => setMode("register"));
 form.addEventListener("submit", submitLogin);
 
 document.addEventListener("DOMContentLoaded", () => {
