@@ -17,7 +17,9 @@ const state = {
   courses: [],
   selectedCourse: null,
   conversationId: getConversationId(),
+  files: [],
   questions: [],
+  difficultyFilter: "",
 };
 
 const elements = {
@@ -28,6 +30,7 @@ const elements = {
   currentCourseDescription: document.querySelector("#current-course-description"),
   resourceList: document.querySelector("#resource-list"),
   resourceContext: document.querySelector("#resource-context"),
+  knowledgeSummary: document.querySelector("#knowledge-summary"),
   questionList: document.querySelector("#question-list"),
   wrongList: document.querySelector("#wrong-list"),
   profileContent: document.querySelector("#profile-content"),
@@ -36,6 +39,7 @@ const elements = {
   askInput: document.querySelector("#ask-input"),
   askSubmit: document.querySelector("#ask-submit"),
   generateButton: document.querySelector("#generate-questions-button"),
+  difficultyFilter: document.querySelector("#difficulty-filter"),
   heroAskButton: document.querySelector("#hero-ask-button"),
   heroPracticeButton: document.querySelector("#hero-practice-button"),
 };
@@ -149,6 +153,133 @@ function replaceContent(container, content) {
   initializeIcons();
 }
 
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function formatInlineMarkdown(value) {
+  return escapeHtml(value)
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*([^*]+)\*/g, "<em>$1</em>");
+}
+
+function appendParagraph(container, lines) {
+  if (!lines.length) return;
+  const paragraph = document.createElement("p");
+  paragraph.innerHTML = formatInlineMarkdown(lines.join(" "));
+  container.append(paragraph);
+  lines.length = 0;
+}
+
+function createMarkdownBlock(text) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "markdown-body";
+  const lines = String(text || "暂无内容").replace(/\r/g, "").split("\n");
+  const paragraphLines = [];
+  let list = null;
+  let codeLines = null;
+
+  function closeList() {
+    if (list) {
+      wrapper.append(list);
+      list = null;
+    }
+  }
+
+  function closeCode() {
+    if (codeLines) {
+      const pre = document.createElement("pre");
+      const code = document.createElement("code");
+      code.textContent = codeLines.join("\n");
+      pre.append(code);
+      wrapper.append(pre);
+      codeLines = null;
+    }
+  }
+
+  lines.forEach((rawLine) => {
+    const line = rawLine.trimEnd();
+    if (line.trim().startsWith("```")) {
+      appendParagraph(wrapper, paragraphLines);
+      closeList();
+      if (codeLines) {
+        closeCode();
+      } else {
+        codeLines = [];
+      }
+      return;
+    }
+    if (codeLines) {
+      codeLines.push(rawLine);
+      return;
+    }
+
+    if (!line.trim()) {
+      appendParagraph(wrapper, paragraphLines);
+      closeList();
+      return;
+    }
+
+    const heading = line.match(/^(#{1,3})\s+(.+)$/);
+    if (heading) {
+      appendParagraph(wrapper, paragraphLines);
+      closeList();
+      const level = Math.min(heading[1].length + 2, 5);
+      const title = document.createElement(`h${level}`);
+      title.innerHTML = formatInlineMarkdown(heading[2]);
+      wrapper.append(title);
+      return;
+    }
+
+    const listItem = line.match(/^[-*]\s+(.+)$/) || line.match(/^\d+\.\s+(.+)$/);
+    if (listItem) {
+      appendParagraph(wrapper, paragraphLines);
+      if (!list) {
+        list = document.createElement("ul");
+      }
+      const item = document.createElement("li");
+      item.innerHTML = formatInlineMarkdown(listItem[1]);
+      list.append(item);
+      return;
+    }
+
+    closeList();
+    paragraphLines.push(line.trim());
+  });
+
+  appendParagraph(wrapper, paragraphLines);
+  closeList();
+  closeCode();
+  return wrapper;
+}
+
+function createStageProgress(title, stages, activeIndex = 0) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "stage-progress";
+  const heading = document.createElement("strong");
+  heading.textContent = title;
+  const list = document.createElement("ol");
+  stages.forEach((stage, index) => {
+    const item = document.createElement("li");
+    if (index < activeIndex) item.className = "is-done";
+    if (index === activeIndex) item.className = "is-current";
+    item.textContent = stage;
+    list.append(item);
+  });
+  wrapper.append(heading, list);
+  return wrapper;
+}
+
+function updateProgress(container, title, stages, activeIndex) {
+  replaceContent(container, createStageProgress(title, stages, activeIndex));
+}
+
 function setButtonLoading(button, loading, loadingLabel = "处理中") {
   if (!button) return;
   if (loading) {
@@ -182,6 +313,42 @@ function formatFileSize(bytes) {
 
 function roleLabel(role) {
   return { student: "学生", teacher: "教师", admin: "管理员" }[role] || "用户";
+}
+
+function chatHistoryKey(conversationId = state.conversationId) {
+  return `studyAi.chatHistory.${conversationId}`;
+}
+
+function loadChatHistory() {
+  try {
+    const history = JSON.parse(sessionStorage.getItem(chatHistoryKey()) || "[]");
+    return Array.isArray(history) ? history : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveChatHistoryItem(role, text) {
+  const history = loadChatHistory();
+  history.push({ role, text, time: Date.now() });
+  sessionStorage.setItem(chatHistoryKey(), JSON.stringify(history.slice(-30)));
+}
+
+function migrateChatHistory(previousConversationId, nextConversationId) {
+  if (!previousConversationId || !nextConversationId || previousConversationId === nextConversationId) return;
+  const previousKey = chatHistoryKey(previousConversationId);
+  const nextKey = chatHistoryKey(nextConversationId);
+  const previousHistory = sessionStorage.getItem(previousKey);
+  if (previousHistory && !sessionStorage.getItem(nextKey)) {
+    sessionStorage.setItem(nextKey, previousHistory);
+  }
+}
+
+function renderChatHistory() {
+  const history = loadChatHistory();
+  if (!history.length) return;
+  elements.chatList.replaceChildren();
+  history.forEach((message) => addChatMessage(message.role, message.text, { persist: false }));
 }
 
 function renderUser(user) {
@@ -257,6 +424,9 @@ function renderCourses() {
 
 function clearSelectedCourse() {
   state.selectedCourse = null;
+  state.files = [];
+  state.questions = [];
+  state.difficultyFilter = "";
   elements.currentCourseName.textContent = "请选择一门课程";
   elements.currentCourseDescription.textContent = "课程加载完成后，从课程列表选择课程开始学习。";
   elements.resourceContext.textContent = "请先选择课程";
@@ -264,6 +434,8 @@ function clearSelectedCourse() {
   setCourseActionsEnabled(false);
   document.querySelector("#resource-count").textContent = "—";
   document.querySelector("#wrong-count").textContent = "—";
+  renderKnowledgeSummary([]);
+  refreshDifficultyFilter();
 }
 
 async function selectCourse(course) {
@@ -294,12 +466,40 @@ async function loadCourseFiles(courseId) {
       body: JSON.stringify({ current: 1, pageSize: 30, courseId }),
     });
     const files = Array.isArray(page?.records) ? page.records : [];
+    state.files = files;
     document.querySelector("#resource-count").textContent = page?.total ?? files.length;
+    renderKnowledgeSummary(files);
     renderFiles(files);
   } catch (error) {
+    state.files = [];
     document.querySelector("#resource-count").textContent = "—";
+    renderKnowledgeSummary([]);
     replaceContent(elements.resourceList, createEmptyState("circle-alert", "资料加载失败", errorMessage(error, "无法读取课程资料")));
   }
+}
+
+function renderKnowledgeSummary(files) {
+  const typeSet = new Set(files.map((file) => String(file.file_type || "未知").toUpperCase()));
+  const totalSize = files.reduce((sum, file) => sum + (Number(file.file_size) || 0), 0);
+  const readyLabel = files.length ? `${files.length} 份资料可用于问答` : "等待课程资料";
+  const typeLabel = typeSet.size ? [...typeSet].slice(0, 4).join(" / ") : "—";
+  const startLabel = files.length ? "先问一个具体知识点" : "先选择课程资料";
+  const summary = document.createDocumentFragment();
+  [
+    ["知识库状态", readyLabel],
+    ["资料类型", typeLabel],
+    ["资料规模", files.length ? formatFileSize(totalSize) : "—"],
+    ["推荐起点", startLabel],
+  ].forEach(([label, value]) => {
+    const item = document.createElement("div");
+    const span = document.createElement("span");
+    span.textContent = label;
+    const strong = document.createElement("strong");
+    strong.textContent = value;
+    item.append(span, strong);
+    summary.append(item);
+  });
+  elements.knowledgeSummary.replaceChildren(summary);
 }
 
 function renderFiles(files) {
@@ -325,7 +525,13 @@ function renderFiles(files) {
     title.textContent = file.file_name || "未命名资料";
     const meta = document.createElement("p");
     meta.textContent = `${file.file_type || "文件"} · ${formatFileSize(file.file_size)} · ${formatDate(file.update_time || file.create_time)}`;
-    copy.append(title, meta);
+    const tags = document.createElement("div");
+    tags.className = "resource-tags";
+    tags.append(
+      createTag((file.file_type || "资料").toUpperCase()),
+      createTag(file.markdown_url || file.markdown_key ? "已入知识库" : "仅可下载", true),
+    );
+    copy.append(title, meta, tags);
 
     const download = document.createElement("a");
     download.className = "download-button";
@@ -379,9 +585,13 @@ function renderWrongQuestions(records) {
     answerGrid.append(createAnswerBlock("你的答案", record.userAnswer || "未填写"), createAnswerBlock("正确答案", record.correctAnswer || "暂无"));
     card.append(meta, title, answerGrid);
     if (record.aiFeedback || record.analysis) {
-      const feedback = document.createElement("p");
-      feedback.textContent = record.aiFeedback || record.analysis;
-      card.append(feedback);
+      const review = document.createElement("details");
+      review.className = "wrong-review";
+      review.open = true;
+      const summary = document.createElement("summary");
+      summary.textContent = "AI 反馈与解析";
+      review.append(summary, createMarkdownBlock(record.aiFeedback || record.analysis));
+      card.append(review);
     }
     elements.wrongList.append(card);
   });
@@ -424,6 +634,21 @@ function renderProfile(profile) {
 
   document.querySelector("#knowledge-level").textContent = profile.knowledgeLevel ?? "—";
   const wrapper = document.createElement("div");
+  wrapper.className = "profile-detail";
+
+  const scorePanel = document.createElement("div");
+  scorePanel.className = "profile-score";
+  const score = document.createElement("strong");
+  score.textContent = profile.knowledgeLevel ?? "—";
+  const scoreCopy = document.createElement("div");
+  const scoreTitle = document.createElement("span");
+  scoreTitle.textContent = "知识水平";
+  const scoreText = document.createElement("p");
+  scoreText.textContent = profile.behaviorAnalysis || "完成问答与练习后，系统会把行为记录纳入画像分析。";
+  scoreCopy.append(scoreTitle, scoreText);
+  scorePanel.append(score, scoreCopy);
+  wrapper.append(scorePanel);
+
   const grid = document.createElement("div");
   grid.className = "profile-grid";
   grid.append(
@@ -431,6 +656,8 @@ function renderProfile(profile) {
     createProfileItem("学习速度", profile.learningSpeed || "待分析"),
     createProfileItem("兴趣方向", profile.interest || "待分析"),
     createProfileItem("错误偏好", profile.errorPreference || "待分析"),
+    createProfileItem("薄弱点数量", Array.isArray(profile.weakness) ? `${profile.weakness.length} 项` : "待分析"),
+    createProfileItem("画像时间", formatDate(profile.updateTime || profile.createTime)),
   );
   wrapper.append(grid);
 
@@ -443,6 +670,21 @@ function renderProfile(profile) {
     weaknessList.append(createTag("暂未识别薄弱点"));
   }
   wrapper.append(weaknessList);
+
+  const routePanel = document.createElement("section");
+  routePanel.className = "profile-section";
+  const routeTitle = document.createElement("h3");
+  routeTitle.textContent = "个性化学习路径";
+  routePanel.append(routeTitle, createMarkdownBlock(profile.learningRoute || "暂无学习路径。完成更多问答与练习后重新分析。"));
+  wrapper.append(routePanel);
+
+  const behaviorPanel = document.createElement("section");
+  behaviorPanel.className = "profile-section";
+  const behaviorTitle = document.createElement("h3");
+  behaviorTitle.textContent = "行为分析";
+  behaviorPanel.append(behaviorTitle, createMarkdownBlock(profile.behaviorAnalysis || "暂无行为分析。"));
+  wrapper.append(behaviorPanel);
+
   replaceContent(elements.profileContent, wrapper);
 }
 
@@ -459,7 +701,15 @@ function createProfileItem(label, value) {
 
 async function analyzeProfile() {
   const button = document.querySelector("#analyze-profile-button");
+  const previousProfile = elements.profileContent.cloneNode(true);
+  const stages = ["汇总问答与练习记录", "分析知识水平与薄弱点", "调用大模型生成学习路径", "更新学习画像"];
+  let activeStage = 0;
   setButtonLoading(button, true, "分析中");
+  updateProgress(elements.profileContent, "AI 正在分析学习画像", stages, activeStage);
+  const progressTimer = window.setInterval(() => {
+    activeStage = Math.min(activeStage + 1, stages.length - 1);
+    updateProgress(elements.profileContent, "AI 正在分析学习画像", stages, activeStage);
+  }, 850);
   hideAlert();
   try {
     const profile = await request(API.analyzeProfile, {
@@ -468,18 +718,32 @@ async function analyzeProfile() {
     });
     renderProfile(profile);
   } catch (error) {
+    elements.profileContent.replaceChildren(...previousProfile.childNodes);
+    initializeIcons();
     showAlert(errorMessage(error, "学习画像分析失败"));
   } finally {
+    window.clearInterval(progressTimer);
     setButtonLoading(button, false);
   }
 }
 
-function addChatMessage(role, text) {
+function addChatMessage(role, text, options = {}) {
+  const { persist = true, progress = false } = options;
   const message = document.createElement("div");
   message.className = `chat-message ${role === "user" ? "user-message" : "ai-message"}`;
-  message.textContent = text;
+  if (progress) {
+    message.append(text);
+  } else if (role === "ai") {
+    message.append(createMarkdownBlock(text));
+  } else {
+    message.textContent = text;
+  }
   elements.chatList.append(message);
   elements.chatList.scrollTop = elements.chatList.scrollHeight;
+  if (persist && !progress) {
+    saveChatHistoryItem(role, text);
+  }
+  return message;
 }
 
 async function askKnowledge(event) {
@@ -490,6 +754,14 @@ async function askKnowledge(event) {
   addChatMessage("user", question);
   elements.askInput.value = "";
   setButtonLoading(elements.askSubmit, true, "回答中");
+  const stages = ["检索课程资料", "组织上下文", "生成回答", "整理 Markdown"];
+  let activeStage = 0;
+  const progressMessage = addChatMessage("ai", createStageProgress("课程知识助手正在处理", stages, activeStage), { persist: false, progress: true });
+  const progressTimer = window.setInterval(() => {
+    activeStage = Math.min(activeStage + 1, stages.length - 1);
+    progressMessage.replaceChildren(createStageProgress("课程知识助手正在处理", stages, activeStage));
+    initializeIcons();
+  }, 900);
 
   try {
     const result = await request(API.ask, {
@@ -501,13 +773,17 @@ async function askKnowledge(event) {
       }),
     });
     if (result?.conversationId) {
+      migrateChatHistory(state.conversationId, result.conversationId);
       state.conversationId = result.conversationId;
       sessionStorage.setItem("studyAi.studentConversationId", result.conversationId);
     }
+    progressMessage.remove();
     addChatMessage("ai", result?.answer || "AI 暂未返回回答。");
   } catch (error) {
+    progressMessage.remove();
     addChatMessage("ai", `回答失败：${errorMessage(error, "请稍后重试")}`);
   } finally {
+    window.clearInterval(progressTimer);
     setButtonLoading(elements.askSubmit, false);
   }
 }
@@ -516,7 +792,13 @@ async function generateQuestions() {
   if (!state.selectedCourse) return;
   const count = Number(document.querySelector("#question-count").value) || 3;
   setButtonLoading(elements.generateButton, true, "生成中");
-  replaceContent(elements.questionList, createLoadingState("AI 正在生成练习"));
+  const stages = ["检索课程知识库", "抽取考察重点", "生成题目", "校验题型与难度"];
+  let activeStage = 0;
+  updateProgress(elements.questionList, "AI 正在生成练习", stages, activeStage);
+  const progressTimer = window.setInterval(() => {
+    activeStage = Math.min(activeStage + 1, stages.length - 1);
+    updateProgress(elements.questionList, "AI 正在生成练习", stages, activeStage);
+  }, 850);
   hideAlert();
   try {
     const questions = await request(API.generateQuestions, {
@@ -528,22 +810,48 @@ async function generateQuestions() {
       }),
     });
     state.questions = Array.isArray(questions) ? questions : [];
+    refreshDifficultyFilter();
     renderQuestions();
   } catch (error) {
     replaceContent(elements.questionList, createEmptyState("circle-alert", "练习生成失败", errorMessage(error, "请稍后重试")));
   } finally {
+    window.clearInterval(progressTimer);
     setButtonLoading(elements.generateButton, false);
   }
 }
 
+function refreshDifficultyFilter() {
+  const difficulties = [...new Set(state.questions.map((question) => question.difficulty).filter(Boolean))];
+  elements.difficultyFilter.replaceChildren();
+  const all = document.createElement("option");
+  all.value = "";
+  all.textContent = "全部";
+  elements.difficultyFilter.append(all);
+  difficulties.forEach((difficulty) => {
+    const option = document.createElement("option");
+    option.value = difficulty;
+    option.textContent = difficulty;
+    elements.difficultyFilter.append(option);
+  });
+  elements.difficultyFilter.disabled = !difficulties.length;
+  state.difficultyFilter = "";
+}
+
 function renderQuestions() {
   elements.questionList.replaceChildren();
+  const visibleQuestions = state.difficultyFilter
+    ? state.questions.filter((question) => question.difficulty === state.difficultyFilter)
+    : state.questions;
   if (!state.questions.length) {
     replaceContent(elements.questionList, createEmptyState("notebook-pen", "未生成题目", "请重新尝试生成练习。"));
     return;
   }
+  if (!visibleQuestions.length) {
+    replaceContent(elements.questionList, createEmptyState("filter-x", "没有符合筛选的题目", "切换难度筛选后再查看。"));
+    return;
+  }
 
-  state.questions.forEach((question, index) => {
+  visibleQuestions.forEach((question, index) => {
     const card = document.createElement("article");
     card.className = "question-card";
     const meta = document.createElement("div");
@@ -582,8 +890,22 @@ async function submitAnswer(event, question, input, button, card) {
     input.disabled = true;
     const feedback = document.createElement("div");
     feedback.className = result?.correct ? "answer-feedback" : "answer-feedback is-wrong";
-    const status = result?.correct ? "回答正确" : `回答错误，正确答案：${result?.correctAnswer || "暂无"}`;
-    feedback.textContent = `${status}${result?.aiFeedback ? `。${result.aiFeedback}` : result?.analysis ? `。${result.analysis}` : ""}`;
+    const status = document.createElement("strong");
+    status.textContent = result?.correct ? "回答正确" : "回答错误";
+    const detailGrid = document.createElement("div");
+    detailGrid.className = "feedback-grid";
+    detailGrid.append(
+      createAnswerBlock("正确答案", result?.correctAnswer || "暂无"),
+      createAnswerBlock("AI 反馈", result?.aiFeedback || result?.analysis || "暂无反馈"),
+    );
+    feedback.append(status, detailGrid);
+    if (result?.analysis) {
+      const details = document.createElement("details");
+      const summary = document.createElement("summary");
+      summary.textContent = "查看解析";
+      details.append(summary, createMarkdownBlock(result.analysis));
+      feedback.append(details);
+    }
     card.append(feedback);
     if (!result?.correct && state.selectedCourse) {
       await loadWrongQuestions(state.selectedCourse.course_id);
@@ -624,6 +946,10 @@ async function initialize() {
   });
   document.querySelector("#ask-form").addEventListener("submit", askKnowledge);
   document.querySelector("#generate-questions-button").addEventListener("click", generateQuestions);
+  elements.difficultyFilter.addEventListener("change", () => {
+    state.difficultyFilter = elements.difficultyFilter.value;
+    renderQuestions();
+  });
   document.querySelector("#hero-practice-button").addEventListener("click", () => {
     document.querySelector("#practice").scrollIntoView({ behavior: "smooth" });
     generateQuestions();
@@ -633,6 +959,7 @@ async function initialize() {
 
   try {
     await loadLoginUser();
+    renderChatHistory();
     await Promise.all([loadCourses(), loadProfile()]);
   } catch (error) {
     showAlert(errorMessage(error, "学生工作台加载失败"));

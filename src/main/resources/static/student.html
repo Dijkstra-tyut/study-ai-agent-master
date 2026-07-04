@@ -178,6 +178,20 @@
             </div>
             <span class="section-context" id="resource-context">请先选择课程</span>
           </div>
+          <div class="knowledge-summary" id="knowledge-summary" aria-live="polite">
+            <div>
+              <span>知识库状态</span>
+              <strong>等待选择课程</strong>
+            </div>
+            <div>
+              <span>资料类型</span>
+              <strong>—</strong>
+            </div>
+            <div>
+              <span>推荐起点</span>
+              <strong>先选择课程资料</strong>
+            </div>
+          </div>
           <div class="resource-list" id="resource-list" aria-live="polite">
             <div class="empty-state"><i data-lucide="folder-open" aria-hidden="true"></i><strong>等待选择课程</strong><p>选择课程后，这里会显示可下载资料。</p></div>
           </div>
@@ -195,6 +209,10 @@
                 <option value="3">3 题</option>
                 <option value="5">5 题</option>
                 <option value="10">10 题</option>
+              </select>
+              <label for="difficulty-filter">难度筛选</label>
+              <select id="difficulty-filter" disabled>
+                <option value="">全部</option>
               </select>
               <button class="primary-button compact-button" id="generate-questions-button" type="button" disabled>
                 <i data-lucide="wand-sparkles" aria-hidden="true"></i>
